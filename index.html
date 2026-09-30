@@ -621,6 +621,28 @@
             <!-- SECTION 3: PENCATATAN PARKIR                   -->
             <!-- ============================================== -->
             <section id="sec-parking" class="hidden space-y-6">
+                <!-- Action Header: Impor & Template Parkir -->
+                <div class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                            <span>Rekapitulasi Retribusi Parkir</span>
+                        </h3>
+                        <p class="text-xs text-slate-500 font-medium">Catat pendapatan & pengeluaran operasional parkir harian atau impor riwayat dari file Excel</p>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <button onclick="downloadParkingTemplate()" class="px-3.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm cursor-pointer" title="Download Template Excel Rekap Parkir">
+                            <i data-lucide="download" class="w-3.5 h-3.5 text-amber-600"></i>
+                            <span>Template Excel Parkir</span>
+                        </button>
+
+                        <label class="px-3.5 py-2 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm cursor-pointer" title="Impor data rekap parkir via file Excel">
+                            <i data-lucide="file-up" class="w-3.5 h-3.5"></i>
+                            <span>Impor Parkir (Excel)</span>
+                            <input type="file" id="parkingExcelFileInput" accept=".xlsx, .xls, .csv" onchange="handleParkingExcelUpload(event)" class="hidden">
+                        </label>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <!-- FORM ENTRY PARKIR HARIAN -->
                     <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
@@ -1413,6 +1435,81 @@
     </div>
 
     <!-- ============================================================== -->
+    <!-- MODAL: PRATINJAU IMPOR REKAP PARKIR EXCEL                      -->
+    <!-- ============================================================== -->
+    <div id="parkingExcelPreviewModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-4xl p-6 sm:p-7 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                        <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-900">Pratinjau Impor Rekapitulasi Parkir</h3>
+                        <p class="text-xs text-slate-400 font-medium" id="parkingExcelImportCount">0 catatan parkir siap diimpor</p>
+                    </div>
+                </div>
+                <button onclick="closeParkingExcelModal()" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Summary Chips -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 text-slate-700">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Hari / Data</p>
+                    <p class="text-sm font-black text-slate-800 mt-0.5" id="previewParkingTotalRows">0 hari</p>
+                </div>
+                <div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-200/80 text-emerald-800">
+                    <p class="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">Total Pendapatan</p>
+                    <p class="text-sm font-black text-emerald-700 mt-0.5" id="previewParkingTotalAmount">Rp 0</p>
+                </div>
+                <div class="p-3 rounded-2xl bg-rose-50 border border-rose-200/80 text-rose-800">
+                    <p class="text-[10px] text-rose-600 font-bold uppercase tracking-wider">Total Pengeluaran</p>
+                    <p class="text-sm font-black text-rose-700 mt-0.5" id="previewParkingTotalExpense">Rp 0</p>
+                </div>
+                <div class="p-3 rounded-2xl bg-amber-50 border border-amber-200/80 text-amber-800">
+                    <p class="text-[10px] text-amber-700 font-bold uppercase tracking-wider">Pendapatan Bersih</p>
+                    <p class="text-sm font-black text-amber-700 mt-0.5" id="previewParkingTotalNet">Rp 0</p>
+                </div>
+            </div>
+
+            <!-- Table Preview -->
+            <div class="overflow-x-auto max-h-72 border border-slate-200 rounded-2xl custom-scrollbar">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-50/90 text-slate-600 uppercase font-bold text-[10px] tracking-wider border-b border-slate-200 sticky top-0 backdrop-blur-sm">
+                        <tr>
+                            <th class="p-3 pl-4">No</th>
+                            <th class="p-3">Tanggal</th>
+                            <th class="p-3 text-right">Pendapatan</th>
+                            <th class="p-3 text-right">Pengeluaran</th>
+                            <th class="p-3 text-right">Pendapatan Bersih</th>
+                            <th class="p-3 pr-4">Catatan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="parkingExcelPreviewTableBody" class="divide-y divide-slate-100 font-semibold text-slate-700">
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Action Controls -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+                <div class="flex items-center gap-2 text-[11px] text-slate-500 font-medium">
+                    <i data-lucide="info" class="w-4 h-4 text-amber-600 flex-shrink-0"></i>
+                    <span>Format kolom Excel: <strong>Tanggal</strong> | <strong>Pendapatan</strong> | <strong>Pengeluaran</strong> | <strong>Catatan</strong>.</span>
+                </div>
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    <button type="button" onclick="closeParkingExcelModal()" class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-100 transition-all cursor-pointer">Batal</button>
+                    <button type="button" id="btnConfirmParkingImport" onclick="confirmParkingExcelImport()" class="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-md shadow-amber-600/20 flex items-center gap-1.5 transition-all cursor-pointer">
+                        <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                        <span>Konfirmasi & Simpan Semua</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================== -->
     <!-- MODAL: CONFIRM ACTION (HAPUS / LOGOUT)                         -->
     <!-- ============================================================== -->
     <div id="confirmActionModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
@@ -1457,6 +1554,9 @@
         let savingsChartInstance = null;
         let isSyncing = false;
         let tempImportData = [];
+        let tempSavingsImportData = [];
+        let tempSavingsNewStudents = [];
+        let tempParkingImportData = [];
 
         const expandedSavingsGroups = new Set();
         const expandedReportGroups = new Set();
@@ -2596,6 +2696,237 @@
         }
 
         // ==========================================
+        // 7B. PARKING EXCEL IMPORT ENGINE
+        // ==========================================
+        function downloadParkingTemplate() {
+            const templateData = [
+                {
+                    'Tanggal': '2026-07-15',
+                    'Pendapatan': 125000,
+                    'Pengeluaran': 0,
+                    'Catatan': '-'
+                },
+                {
+                    'Tanggal': '2026-07-16',
+                    'Pendapatan': 125000,
+                    'Pengeluaran': 0,
+                    'Catatan': '-'
+                },
+                {
+                    'Tanggal': '2026-07-17',
+                    'Pendapatan': 128000,
+                    'Pengeluaran': 0,
+                    'Catatan': '-'
+                },
+                {
+                    'Tanggal': '2026-07-20',
+                    'Pendapatan': 125000,
+                    'Pengeluaran': 0,
+                    'Catatan': '-'
+                },
+                {
+                    'Tanggal': '2026-07-21',
+                    'Pendapatan': 125000,
+                    'Pengeluaran': 0,
+                    'Catatan': '-'
+                },
+                {
+                    'Tanggal': '2026-07-22',
+                    'Pendapatan': 130000,
+                    'Pengeluaran': 0,
+                    'Catatan': '-'
+                }
+            ];
+
+            const ws = XLSX.utils.json_to_sheet(templateData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Rekap_Parkir");
+            XLSX.writeFile(wb, "Template_Impor_Parkir.xlsx");
+            showToast('Template Excel rekap parkir berhasil diunduh!', 'success');
+        }
+
+        function handleParkingExcelUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const data = new Uint8Array(evt.target.result);
+                    const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false });
+
+                    processParkingExcelData(json);
+                } catch (err) {
+                    showToast('Gagal membaca berkas Excel parkir: ' + err.message, 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            e.target.value = '';
+        }
+
+        function processParkingExcelData(rows) {
+            if (!rows || rows.length <= 1) {
+                showToast('File Excel parkir kosong atau format tidak sesuai!', 'error');
+                return;
+            }
+
+            // 1. Deteksi nama kolom pada baris header (baris 0)
+            const headerRow = rows[0].map(h => String(h || '').toLowerCase().trim());
+            let colDate = headerRow.findIndex(h => h.includes('tanggal') || h.includes('tgl') || h.includes('date'));
+            let colAmount = headerRow.findIndex(h => h.includes('pendapatan') || h.includes('masuk') || h.includes('income') || h.includes('kredit'));
+            let colExpense = headerRow.findIndex(h => h.includes('pengeluaran') || h.includes('biaya') || h.includes('keluar') || h.includes('expense') || h.includes('debit'));
+            let colNote = headerRow.findIndex(h => h.includes('catatan') || h.includes('keterangan') || h.includes('note') || h.includes('ket'));
+
+            // Fallback default sesuai contoh tabel
+            if (colDate === -1) colDate = 0;
+            if (colAmount === -1) colAmount = 1;
+            if (colExpense === -1) colExpense = 2;
+            if (colNote === -1) colNote = 3;
+
+            tempParkingImportData = [];
+
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (!row || row.length === 0) continue;
+
+                const rawDate = row[colDate];
+                const rawAmount = row[colAmount];
+                const rawExpense = row[colExpense];
+                const rawNote = row[colNote];
+
+                // Skip jika semua kolom kosong
+                if (rawDate === undefined && rawAmount === undefined && rawExpense === undefined && rawNote === undefined) continue;
+                if (String(rawDate || '').trim() === '' && String(rawAmount || '').trim() === '' && String(rawExpense || '').trim() === '') continue;
+
+                // Bersihkan pendapatan (Rp 125.000 -> 125000)
+                let amount = 0;
+                if (typeof rawAmount === 'number') {
+                    amount = Math.abs(rawAmount);
+                } else {
+                    const cleanAmt = String(rawAmount || '').replace(/[^0-9]/g, '');
+                    amount = Number(cleanAmt) || 0;
+                }
+
+                // Bersihkan pengeluaran (0 / - / Rp 15.000 -> 0 / 15000)
+                let expense = 0;
+                if (typeof rawExpense === 'number') {
+                    expense = Math.abs(rawExpense);
+                } else {
+                    const cleanExp = String(rawExpense || '').replace(/[^0-9]/g, '');
+                    expense = Number(cleanExp) || 0;
+                }
+
+                const date = parseSavingsDate(rawDate);
+                let note = String(rawNote || '').trim();
+                if (!note || note === '-') {
+                    note = '-';
+                }
+
+                tempParkingImportData.push({
+                    date: date,
+                    amount: amount,
+                    expense: expense,
+                    net: amount - expense,
+                    note: note
+                });
+            }
+
+            if (tempParkingImportData.length === 0) {
+                showToast('Tidak ada data parkir yang valid dalam file Excel!', 'error');
+                return;
+            }
+
+            // Tampilkan Pratinjau di Modal
+            const tbody = document.getElementById('parkingExcelPreviewTableBody');
+            const totalAmount = tempParkingImportData.reduce((acc, p) => acc + p.amount, 0);
+            const totalExpense = tempParkingImportData.reduce((acc, p) => acc + p.expense, 0);
+            const totalNet = totalAmount - totalExpense;
+
+            document.getElementById('previewParkingTotalRows').innerText = `${tempParkingImportData.length} hari`;
+            document.getElementById('previewParkingTotalAmount').innerText = formatRp(totalAmount);
+            document.getElementById('previewParkingTotalExpense').innerText = formatRp(totalExpense);
+            document.getElementById('previewParkingTotalNet').innerText = formatRp(totalNet);
+            document.getElementById('parkingExcelImportCount').innerText = `${tempParkingImportData.length} data parkir siap diimpor ke sistem`;
+
+            tbody.innerHTML = tempParkingImportData.map((p, idx) => {
+                return `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="p-2.5 pl-4 font-semibold text-slate-500">${idx + 1}</td>
+                    <td class="p-2.5 font-semibold text-slate-700">${p.date}</td>
+                    <td class="p-2.5 text-right font-black text-emerald-600">${formatRp(p.amount)}</td>
+                    <td class="p-2.5 text-right font-black text-rose-600">${formatRp(p.expense)}</td>
+                    <td class="p-2.5 text-right font-black text-amber-700">${formatRp(p.net)}</td>
+                    <td class="p-2.5 pr-4 text-slate-600 text-xs">${p.note}</td>
+                </tr>
+                `;
+            }).join('');
+
+            document.getElementById('parkingExcelPreviewModal').classList.remove('hidden');
+            safeLucide();
+        }
+
+        function closeParkingExcelModal() {
+            document.getElementById('parkingExcelPreviewModal').classList.add('hidden');
+            tempParkingImportData = [];
+        }
+
+        async function confirmParkingExcelImport() {
+            if (tempParkingImportData.length === 0) return;
+
+            const btn = document.getElementById('btnConfirmParkingImport');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Menyimpan Data Parkir...</span>';
+                safeLucide();
+            }
+
+            try {
+                const newLogs = tempParkingImportData.map((item, idx) => ({
+                    id: 'prk_' + Date.now() + '_' + idx + '_' + Math.random().toString(36).substring(2, 7),
+                    date: item.date,
+                    amount: item.amount,
+                    expense: item.expense,
+                    note: item.note === '-' ? 'Rekap retribusi parkir harian' : item.note
+                }));
+
+                parkingLogs.push(...newLogs);
+
+                if (supabaseClient) {
+                    try {
+                        const payload = newLogs.map(l => ({
+                            id: l.id,
+                            date: l.date,
+                            amount: l.amount,
+                            expense: l.expense,
+                            note: l.note
+                        }));
+                        await supabaseClient.from('parking_logs').insert(payload);
+                    } catch (err) {
+                        console.warn('Supabase parking import warning:', err);
+                    }
+                }
+
+                saveDataToLocal();
+                renderAllViews();
+                renderDashboard();
+
+                showToast(`Sukses! ${newLogs.length} data rekapitulasi parkir berhasil diimpor!`, 'success');
+                closeParkingExcelModal();
+            } catch (e) {
+                showToast(`Gagal mengimpor data parkir: ${e.message}`, 'error');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i><span>Konfirmasi & Simpan Semua</span>';
+                    safeLucide();
+                }
+            }
+        }
+
+        // ==========================================
         // 8. STUDENT DIRECTORY & EXCEL IMPORT
         // ==========================================
         function renderStudents() {
@@ -2888,9 +3219,6 @@
         // ==========================================
         // FITUR IMPOR TRANSAKSI TABUNGAN (EXCEL)
         // ==========================================
-        let tempSavingsImportData = [];
-        let tempSavingsNewStudents = [];
-
         function downloadSavingsTemplate() {
             const templateData = [
                 {
