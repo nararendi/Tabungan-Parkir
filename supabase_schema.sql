@@ -15,14 +15,26 @@ CREATE TABLE IF NOT EXISTS public.app_users (
     name TEXT NOT NULL,
     username TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
-    role TEXT CHECK (role IN ('super_admin', 'user')) DEFAULT 'user',
+    role TEXT DEFAULT 'user',
     created_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- JIKA TABEL SUDAH ADA SEBELUMNYA: Lepas constraint lama & pasang constraint baru
+ALTER TABLE public.app_users DROP CONSTRAINT IF EXISTS app_users_role_check;
+ALTER TABLE public.app_users ADD CONSTRAINT app_users_role_check 
+    CHECK (role IN ('super_admin', 'user', 'Admin', 'Petugas'));
+
+-- Migrasi role lama ke format baru jika ada
+UPDATE public.app_users SET role = 'super_admin' WHERE role = 'Admin';
+UPDATE public.app_users SET role = 'user' WHERE role = 'Petugas';
 
 -- AKUN DEFAULT SUPER ADMIN (Tanpa data dummy, hanya akun utama untuk login)
 INSERT INTO public.app_users (id, name, username, password, role)
 VALUES ('usr_superadmin', 'Super Administrator', 'admin', 'admin123', 'super_admin')
-ON CONFLICT (username) DO NOTHING;
+ON CONFLICT (username) DO UPDATE 
+SET role = 'super_admin',
+    name = EXCLUDED.name,
+    password = EXCLUDED.password;
 
 -- 2. TABEL DATA SISWA
 CREATE TABLE IF NOT EXISTS public.students (
@@ -132,6 +144,15 @@ BEGIN
 END $$;
 
 -- ==============================================================================
--- SKEMA DATABASE SIAP (BERSIH TANPA DATA DUMMY)
+-- PEMBERSIHAN DATA DUMMY (MENGHAPUS SEMUA DATA DUMMY SEBELUMNYA DI SUPABASE)
+-- ==============================================================================
+-- Perintah ini memastikan database Supabase Anda bersih dari data dummy lama:
+TRUNCATE TABLE public.savings_transactions CASCADE;
+TRUNCATE TABLE public.parking_logs CASCADE;
+TRUNCATE TABLE public.students CASCADE;
+DELETE FROM public.app_users WHERE username NOT IN ('admin');
+
+-- ==============================================================================
+-- SKEMA DATABASE SIAP (BERSIH 100% TANPA DATA DUMMY)
 -- Anda dapat mulai mengisi data langsung melalui antarmuka web EduVault!
 -- ==============================================================================

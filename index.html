@@ -4029,14 +4029,24 @@ CREATE TABLE IF NOT EXISTS public.app_users (
     name TEXT NOT NULL,
     username TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
-    role TEXT CHECK (role IN ('super_admin', 'user')) DEFAULT 'user',
+    role TEXT DEFAULT 'user',
     created_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- JIKA TABEL SUDAH ADA SEBELUMNYA: Lepas constraint lama & pasang constraint baru
+ALTER TABLE public.app_users DROP CONSTRAINT IF EXISTS app_users_role_check;
+ALTER TABLE public.app_users ADD CONSTRAINT app_users_role_check CHECK (role IN ('super_admin', 'user', 'Admin', 'Petugas'));
+
+UPDATE public.app_users SET role = 'super_admin' WHERE role = 'Admin';
+UPDATE public.app_users SET role = 'user' WHERE role = 'Petugas';
 
 -- AKUN DEFAULT SUPER ADMIN (Tanpa data dummy)
 INSERT INTO public.app_users (id, name, username, password, role)
 VALUES ('usr_superadmin', 'Super Administrator', 'admin', 'admin123', 'super_admin')
-ON CONFLICT (username) DO NOTHING;
+ON CONFLICT (username) DO UPDATE 
+SET role = 'super_admin',
+    name = EXCLUDED.name,
+    password = EXCLUDED.password;
 
 -- 2. TABEL DATA SISWA
 CREATE TABLE IF NOT EXISTS public.students (
@@ -4071,6 +4081,12 @@ CREATE TABLE IF NOT EXISTS public.parking_logs (
     note TEXT DEFAULT '',
     created_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- PEMBERSIHAN DATA DUMMY (MENGHAPUS SEMUA DATA DUMMY SEBELUMNYA)
+TRUNCATE TABLE public.savings_transactions CASCADE;
+TRUNCATE TABLE public.parking_logs CASCADE;
+TRUNCATE TABLE public.students CASCADE;
+DELETE FROM public.app_users WHERE username NOT IN ('admin');
 
 -- RLS POLICIES
 ALTER TABLE public.app_users ENABLE ROW LEVEL SECURITY;
