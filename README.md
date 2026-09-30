@@ -85,4 +85,4 @@ Aplikasi web modern untuk pengelolaan transaksi tabungan siswa dan retribusi par
 - **`index.html`**: Aplikasi web utama (HTML5, Tailwind CSS, Lucide Icons, Chart.js, SheetJS, dan Supabase JS Client v2).
 - **`supabase_schema.sql`**: Skrip SQL lengkap untuk inisialisasi tabel, indeks, keamanan RLS, dan data awal di Supabase.
 - **`README.md`**: Dokumentasi panduan lengkap.
-- **`index`**: Pengalih otomatis ke `index.html`.
+- **`vercel.json`**: Konfigurasi routing & rewrites untuk deployment Vercel.
