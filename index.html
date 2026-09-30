@@ -2496,12 +2496,17 @@
                 const cls = (s.class || 'Tanpa Kelas').trim();
                 if (!classMap[cls]) classMap[cls] = { name: cls, count: 0, totalBalance: 0, totalDeposit: 0 };
                 classMap[cls].count++;
-                // Compute balance from transactions
-                const txs = (savingsTransactions || []).filter(t => t.studentId === s.id);
+                // Compute balance from transactions — match by studentNis, type SETOR/TARIK
+                const txs = (savingsTransactions || []).filter(t =>
+                    (t.studentNis && t.studentNis === s.nis) ||
+                    (t.student_nis && t.student_nis === s.nis)
+                );
                 let bal = 0, dep = 0;
                 txs.forEach(t => {
-                    if (t.type === 'deposit') { bal += Number(t.amount || 0); dep += Number(t.amount || 0); }
-                    else { bal -= Number(t.amount || 0); }
+                    const amt = Number(t.amount || 0);
+                    const ttype = (t.type || '').toUpperCase();
+                    if (ttype === 'SETOR' || ttype === 'DEPOSIT') { bal += amt; dep += amt; }
+                    else { bal -= amt; }
                 });
                 classMap[cls].totalBalance += bal;
                 classMap[cls].totalDeposit += dep;
@@ -2586,11 +2591,16 @@
                 (s.class || 'Tanpa Kelas').trim() === className
             );
             return studentsInClass.map(s => {
-                const txs = (savingsTransactions || []).filter(t => t.studentId === s.id);
+                // Match by studentNis (local) or student_nis (Supabase mapping)
+                const txs = (savingsTransactions || []).filter(t =>
+                    (t.studentNis && t.studentNis === s.nis) ||
+                    (t.student_nis && t.student_nis === s.nis)
+                );
                 let totalDeposit = 0, totalWithdraw = 0, depositCount = 0, withdrawCount = 0;
                 txs.forEach(t => {
                     const amt = Number(t.amount || 0);
-                    if (t.type === 'deposit') { totalDeposit += amt; depositCount++; }
+                    const ttype = (t.type || '').toUpperCase();
+                    if (ttype === 'SETOR' || ttype === 'DEPOSIT') { totalDeposit += amt; depositCount++; }
                     else { totalWithdraw += amt; withdrawCount++; }
                 });
                 return {
