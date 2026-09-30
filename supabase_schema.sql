@@ -15,9 +15,14 @@ CREATE TABLE IF NOT EXISTS public.app_users (
     name TEXT NOT NULL,
     username TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
-    role TEXT CHECK (role IN ('Admin', 'Petugas')) DEFAULT 'Petugas',
+    role TEXT CHECK (role IN ('super_admin', 'user')) DEFAULT 'user',
     created_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- AKUN DEFAULT SUPER ADMIN (Tanpa data dummy, hanya akun utama untuk login)
+INSERT INTO public.app_users (id, name, username, password, role)
+VALUES ('usr_superadmin', 'Super Administrator', 'admin', 'admin123', 'super_admin')
+ON CONFLICT (username) DO NOTHING;
 
 -- 2. TABEL DATA SISWA
 CREATE TABLE IF NOT EXISTS public.students (

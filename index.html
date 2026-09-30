@@ -228,13 +228,13 @@
                     <span class="text-[10px] text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full border border-brand-200">Siap Digunakan</span>
                 </div>
                 <div class="grid grid-cols-2 gap-2 text-[10px]">
-                    <button type="button" onclick="fillQuickLogin('admin', 'admin123')" class="p-2 bg-white rounded-lg border border-slate-200 text-left hover:border-brand-500 hover:bg-brand-50/50 transition-all">
-                        <span class="font-bold text-slate-800 block">👤 Admin</span>
+                    <button type="button" onclick="fillQuickLogin('admin', 'admin123')" class="p-2 bg-white rounded-lg border border-slate-200 text-left hover:border-brand-500 hover:bg-brand-50/50 transition-all cursor-pointer">
+                        <span class="font-bold text-slate-800 block">👑 Super Admin</span>
                         <span class="text-slate-400 font-mono text-[9px]">admin / admin123</span>
                     </button>
-                    <button type="button" onclick="fillQuickLogin('petugas', 'petugas123')" class="p-2 bg-white rounded-lg border border-slate-200 text-left hover:border-brand-500 hover:bg-brand-50/50 transition-all">
-                        <span class="font-bold text-slate-800 block">👮 Petugas</span>
-                        <span class="text-slate-400 font-mono text-[9px]">petugas / petugas123</span>
+                    <button type="button" onclick="fillQuickLogin('petugas', 'user123')" class="p-2 bg-white rounded-lg border border-slate-200 text-left hover:border-brand-500 hover:bg-brand-50/50 transition-all cursor-pointer">
+                        <span class="font-bold text-slate-800 block">👤 User Biasa</span>
+                        <span class="text-slate-400 font-mono text-[9px]">petugas / user123</span>
                     </button>
                 </div>
             </div>
@@ -278,6 +278,7 @@
                 <span>Pencatatan Parkir</span>
             </button>
 
+            <!-- Menu Khusus Super Admin: Data Siswa -->
             <button onclick="showSection('students')" id="nav-students" class="nav-btn nav-inactive">
                 <i data-lucide="users" class="w-4 h-4"></i>
                 <span>Kelola Data Siswa</span>
@@ -288,20 +289,21 @@
                 <span>Laporan Keuangan</span>
             </button>
 
-            <button onclick="showSection('users')" id="nav-users" class="nav-btn nav-inactive">
-                <i data-lucide="user-check" class="w-4 h-4"></i>
-                <span>Kelola Pengguna</span>
+            <!-- Menu Khusus Super Admin: Pengaturan Sistem (User & Database) -->
+            <button onclick="showSection('settings')" id="nav-settings" class="nav-btn nav-inactive">
+                <i data-lucide="settings" class="w-4 h-4"></i>
+                <span>Pengaturan Sistem</span>
             </button>
 
             <!-- Supabase Cloud Hub Action in Nav -->
             <div class="pt-4 mt-4 border-t border-slate-800/80">
                 <div class="px-2 pb-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Database Cloud</div>
-                <button onclick="openSupabaseModal()" class="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 text-slate-300 hover:text-white transition-all text-xs font-semibold group">
+                <button onclick="showSection('settings'); switchSettingsTab('database');" class="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 text-slate-300 hover:text-white transition-all text-xs font-semibold group cursor-pointer">
                     <div class="flex items-center gap-2.5">
                         <div class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
                             <i data-lucide="database" class="w-3.5 h-3.5"></i>
                         </div>
-                        <span>Supabase Hub</span>
+                        <span>Koneksi Supabase</span>
                     </div>
                     <span id="sideDbBadge" class="text-[10px] px-1.5 py-0.5 rounded font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">Lokal</span>
                 </button>
@@ -912,37 +914,175 @@
             </section>
 
             <!-- ============================================== -->
-            <!-- SECTION 6: KELOLA PENGGUNA (USER & ADMIN)      -->
+            <!-- SECTION 6: PENGATURAN SISTEM (SUPER ADMIN)     -->
+            <!-- (Pengaturan User & Pengaturan Database)        -->
             <!-- ============================================== -->
-            <section id="sec-users" class="hidden space-y-6">
-                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-                    <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
-                        <div>
-                            <h3 class="text-sm font-extrabold text-slate-900">Manajemen Pengguna & Otoritas</h3>
-                            <p class="text-[11px] text-slate-400 font-medium">Kelola akun admin dan petugas operator sistem</p>
+            <section id="sec-settings" class="hidden space-y-6">
+                <!-- Header Card & Tab Switcher -->
+                <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 text-brand-600 flex items-center justify-center font-black shadow-sm">
+                            <i data-lucide="settings-2" class="w-6 h-6"></i>
                         </div>
-                        <button onclick="openAddUserModal()" class="px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs transition-all flex items-center gap-1.5 shadow-md shadow-brand-600/20">
-                            <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
-                            <span>Tambah Pengguna</span>
-                        </button>
+                        <div>
+                            <h3 class="text-base font-extrabold text-slate-900 tracking-tight">Pengaturan Sistem</h3>
+                            <p class="text-xs text-slate-500 font-medium">Pusat kendali akun pengguna dan integrasi database cloud Supabase</p>
+                        </div>
                     </div>
 
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs">
-                            <thead class="bg-slate-50/80 text-slate-500 uppercase font-bold text-[10px] tracking-wider border-b border-slate-100">
-                                <tr>
-                                    <th class="p-3.5 pl-5">Nama Lengkap</th>
-                                    <th class="p-3.5">Username</th>
-                                    <th class="p-3.5">Peran / Role</th>
-                                    <th class="p-3.5 text-center pr-5">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="usersTableBody" class="divide-y divide-slate-100 font-medium">
-                                <tr><td colspan="4" class="p-5 text-center text-slate-400">Memuat data pengguna...</td></tr>
-                            </tbody>
-                        </table>
+                    <!-- Tab Buttons -->
+                    <div class="flex items-center bg-slate-100/90 p-1 rounded-xl border border-slate-200/80">
+                        <button type="button" id="tabBtnUsers" onclick="switchSettingsTab('users')" class="px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white text-slate-900 shadow-sm flex items-center gap-2 cursor-pointer">
+                            <i data-lucide="users" class="w-3.5 h-3.5 text-brand-600"></i>
+                            <span>Pengaturan Pengguna</span>
+                        </button>
+                        <button type="button" id="tabBtnDatabase" onclick="switchSettingsTab('database')" class="px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-2 cursor-pointer">
+                            <i data-lucide="database" class="w-3.5 h-3.5 text-emerald-600"></i>
+                            <span>Koneksi Database</span>
+                        </button>
                     </div>
-                    <div id="usersPagination" class="p-3.5 border-t border-slate-100 bg-slate-50/70 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-semibold text-slate-600"></div>
+                </div>
+
+                <!-- SUB-TAB 1: PENGATURAN USER -->
+                <div id="settingsTabUsers" class="space-y-6">
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                        <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between flex-wrap gap-3">
+                            <div>
+                                <h4 class="text-sm font-extrabold text-slate-900">Daftar Akun Pengguna</h4>
+                                <p class="text-[11px] text-slate-400 font-medium">Kelola akun Super Admin dan User Biasa (Petugas)</p>
+                            </div>
+                            <button onclick="openAddUserModal()" class="px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs transition-all flex items-center gap-1.5 shadow-md shadow-brand-600/20 cursor-pointer">
+                                <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+                                <span>Tambah Pengguna</span>
+                            </button>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-50/80 text-slate-500 uppercase font-bold text-[10px] tracking-wider border-b border-slate-100">
+                                    <tr>
+                                        <th class="p-3.5 pl-5">Nama Lengkap</th>
+                                        <th class="p-3.5">Username</th>
+                                        <th class="p-3.5">Kategori / Peran</th>
+                                        <th class="p-3.5 text-center pr-5">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTableBody" class="divide-y divide-slate-100 font-medium">
+                                    <tr><td colspan="4" class="p-5 text-center text-slate-400">Memuat data pengguna...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="usersPagination" class="p-3.5 border-t border-slate-100 bg-slate-50/70 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-semibold text-slate-600"></div>
+                    </div>
+                </div>
+
+                <!-- SUB-TAB 2: PENGATURAN DATABASE (SUPABASE) -->
+                <div id="settingsTabDatabase" class="hidden space-y-6">
+                    <!-- Status & Connection Card -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                                    <i data-lucide="database" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-extrabold text-slate-900">Konfigurasi Database Cloud Supabase</h4>
+                                    <p class="text-xs text-slate-500">Hubungkan web app ke database PostgreSQL Supabase untuk sinkronisasi data online</p>
+                                </div>
+                            </div>
+                            <div id="settingsDbBadge" class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" id="settingsStatusDot"></span>
+                                <span id="settingsStatusText">Mode Penyimpanan Lokal (Offline)</span>
+                            </div>
+                        </div>
+
+                        <!-- Form Koneksi Supabase -->
+                        <form id="settingsSupabaseForm" onsubmit="handleSaveSupabaseConfigInline(event)" class="space-y-4 pt-1">
+                            <div class="grid grid-cols-1 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+                                        <span>Supabase Project URL *</span>
+                                        <span class="text-[10px] text-slate-400 font-normal">Contoh: https://xyzcompany.supabase.co</span>
+                                    </label>
+                                    <div class="relative">
+                                        <i data-lucide="link" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
+                                        <input type="url" id="settingSupabaseUrl" required placeholder="https://xxxxxxxxxxxxxxxx.supabase.co" class="w-full text-xs pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none font-mono font-semibold">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+                                        <span>Supabase Anon Public API Key *</span>
+                                        <span class="text-[10px] text-slate-400 font-normal">Kunci publik anon (bukan service_role)</span>
+                                    </label>
+                                    <div class="relative">
+                                        <i data-lucide="key" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
+                                        <input type="password" id="settingSupabaseKey" required placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." class="w-full text-xs pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none font-mono font-semibold">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <button type="button" onclick="testSupabaseConnectionInline()" id="btnTestSupabaseInline" class="px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer">
+                                        <i data-lucide="activity" class="w-3.5 h-3.5"></i>
+                                        <span>Uji Koneksi</span>
+                                    </button>
+                                    <button type="submit" id="btnSaveSupabaseInline" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-md shadow-emerald-600/20 cursor-pointer">
+                                        <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                                        <span>Simpan & Hubungkan Database</span>
+                                    </button>
+                                </div>
+
+                                <div class="flex items-center gap-2">
+                                    <button type="button" onclick="disconnectSupabase()" id="btnDisconnectSupabaseInline" class="px-4 py-2.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer">
+                                        <i data-lucide="unlink" class="w-3.5 h-3.5"></i>
+                                        <span>Putus Koneksi</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Step-by-Step Instructions & SQL Script Guide -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                            <div>
+                                <h4 class="text-sm font-extrabold text-slate-900">Cara Menghubungkan ke Supabase (Panduan Lengkap)</h4>
+                                <p class="text-xs text-slate-500">Ikuti 4 langkah mudah berikut untuk mengaktifkan database online</p>
+                            </div>
+                            <button onclick="copySqlSchemaToClipboard()" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-black text-white font-bold text-xs flex items-center gap-1.5 shadow-sm cursor-pointer self-start sm:self-auto">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                <span id="copySqlSettingsText">Salin Skrip SQL Supabase</span>
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
+                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1.5">
+                                <span class="w-7 h-7 rounded-lg bg-brand-600 text-white font-extrabold text-xs flex items-center justify-center">1</span>
+                                <h5 class="font-extrabold text-slate-900 pt-1">Buat Project Baru</h5>
+                                <p class="text-[11px] text-slate-500 leading-relaxed">Buka <a href="https://supabase.com" target="_blank" class="text-brand-600 underline font-bold">supabase.com</a>, daftar/login, klik <strong>New Project</strong>, tentukan nama dan password database.</p>
+                            </div>
+
+                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1.5">
+                                <span class="w-7 h-7 rounded-lg bg-brand-600 text-white font-extrabold text-xs flex items-center justify-center">2</span>
+                                <h5 class="font-extrabold text-slate-900 pt-1">Jalankan Skrip SQL</h5>
+                                <p class="text-[11px] text-slate-500 leading-relaxed">Klik tombol <strong>"Salin Skrip SQL Supabase"</strong> di kanan atas. Buka menu <strong>SQL Editor</strong> di Supabase, buat <strong>New Query</strong>, tempel (Paste) lalu klik <strong>Run</strong>.</p>
+                            </div>
+
+                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1.5">
+                                <span class="w-7 h-7 rounded-lg bg-brand-600 text-white font-extrabold text-xs flex items-center justify-center">3</span>
+                                <h5 class="font-extrabold text-slate-900 pt-1">Ambil API Key</h5>
+                                <p class="text-[11px] text-slate-500 leading-relaxed">Di dashboard Supabase, klik <strong>Project Settings (ikon gear)</strong> > <strong>API</strong>. Salin <strong>Project URL</strong> dan <strong>anon / public key</strong>.</p>
+                            </div>
+
+                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1.5">
+                                <span class="w-7 h-7 rounded-lg bg-brand-600 text-white font-extrabold text-xs flex items-center justify-center">4</span>
+                                <h5 class="font-extrabold text-slate-900 pt-1">Simpan di Aplikasi</h5>
+                                <p class="text-[11px] text-slate-500 leading-relaxed">Tempelkan URL dan API Key ke formulir di atas, lalu klik <strong>Simpan & Hubungkan Database</strong>. Status akan otomatis berubah menjadi <strong>Terhubung (Cloud)</strong>.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -1154,11 +1294,12 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Peran / Otoritas *</label>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Kategori / Peran Pengguna *</label>
                     <select id="usrRole" required class="w-full text-xs p-2.5 rounded-xl border border-slate-300 font-semibold bg-white outline-none">
-                        <option value="Petugas">Petugas (Operator Kas)</option>
-                        <option value="Admin">Administrator (Akses Penuh)</option>
+                        <option value="super_admin">👑 Super Admin (Akses Penuh: Kelola Siswa & Pengaturan)</option>
+                        <option value="user">👤 User Biasa (Akses Operasional: Tabungan, Parkir, Laporan)</option>
                     </select>
+                    <p class="text-[10px] text-slate-400 mt-1">Menu Data Siswa & Pengaturan hanya dapat diakses oleh akun Super Admin</p>
                 </div>
 
                 <div class="flex items-center justify-end gap-2 pt-3">
@@ -1262,43 +1403,25 @@
         let supabaseClient = null;
         let supabaseRealtimeChannel = null;
 
-        // Default Data Seed (Fallback if storage empty)
+        // Clean wipe of dummy data across browsers
+        const STORAGE_CLEAN_VERSION = 'v5_clean_nodummy';
+        if (typeof localStorage !== 'undefined' && localStorage.getItem('eduvault_storage_version') !== STORAGE_CLEAN_VERSION) {
+            localStorage.removeItem(STORAGE_KEY_STUDENTS);
+            localStorage.removeItem(STORAGE_KEY_SAVINGS);
+            localStorage.removeItem(STORAGE_KEY_PARKING);
+            localStorage.removeItem(STORAGE_KEY_USERS);
+            localStorage.setItem('eduvault_storage_version', STORAGE_CLEAN_VERSION);
+        }
+
+        // Akun Sistem Default (Tanpa Data Dummy)
         const DEFAULT_USERS = [
-            { id: 'usr_1', name: 'Administrator Sekolah', username: 'admin', password: 'admin123', role: 'Admin' },
-            { id: 'usr_2', name: 'Petugas Tabungan & Parkir', username: 'petugas', password: 'petugas123', role: 'Petugas' }
+            { id: 'usr_superadmin', name: 'Super Administrator', username: 'admin', password: 'admin123', role: 'super_admin' },
+            { id: 'usr_petugas', name: 'Petugas Loket (User Biasa)', username: 'petugas', password: 'user123', role: 'user' }
         ];
 
-        const DEFAULT_STUDENTS = [
-            { id: 'std_1', nis: '2026001', name: 'Ahmad Rizky Pratama', jk: 'L', class: 'X RPL 1', plat: 'B 4123 TZX', balance: 250000 },
-            { id: 'std_2', nis: '2026002', name: 'Siti Aisyah Rahma', jk: 'P', class: 'X RPL 1', plat: 'B 6890 KLR', balance: 450000 },
-            { id: 'std_3', nis: '2026003', name: 'Budi Santoso', jk: 'L', class: 'XI TKJ 2', plat: 'D 1289 VBC', balance: 120000 },
-            { id: 'std_4', nis: '2026004', name: 'Dewi Lestari', jk: 'P', class: 'XI OTKP 1', plat: '', balance: 320000 },
-            { id: 'std_5', nis: '2026005', name: 'Muhammad Fadhil', jk: 'L', class: 'XII AKL 1', plat: 'B 3011 PLM', balance: 180000 }
-        ];
-
-        const getPastDateStr = (daysAgo) => {
-            const d = new Date();
-            d.setDate(d.getDate() - daysAgo);
-            return new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-        };
-
-        const DEFAULT_SAVINGS = [
-            { id: 'tx_1', studentNis: '2026001', studentName: 'Ahmad Rizky Pratama', type: 'SETOR', amount: 200000, date: getPastDateStr(4), note: 'Setoran awal semester' },
-            { id: 'tx_2', studentNis: '2026001', studentName: 'Ahmad Rizky Pratama', type: 'SETOR', amount: 50000, date: getPastDateStr(2), note: 'Tabungan mingguan' },
-            { id: 'tx_3', studentNis: '2026002', studentName: 'Siti Aisyah Rahma', type: 'SETOR', amount: 500000, date: getPastDateStr(3), note: 'Setoran bulanan' },
-            { id: 'tx_4', studentNis: '2026002', studentName: 'Siti Aisyah Rahma', type: 'TARIK', amount: 50000, date: getPastDateStr(1), note: 'Pembelian buku modul' },
-            { id: 'tx_5', studentNis: '2026003', studentName: 'Budi Santoso', type: 'SETOR', amount: 120000, date: getPastDateStr(5), note: 'Setoran kas mandiri' },
-            { id: 'tx_6', studentNis: '2026004', studentName: 'Dewi Lestari', type: 'SETOR', amount: 320000, date: getPastDateStr(3), note: 'Tabungan qurban & perlengkapan' },
-            { id: 'tx_7', studentNis: '2026005', studentName: 'Muhammad Fadhil', type: 'SETOR', amount: 180000, date: getPastDateStr(2), note: 'Setoran tabungan' }
-        ];
-
-        const DEFAULT_PARKING = [
-            { id: 'prk_1', date: getPastDateStr(4), amount: 85000, expense: 15000, note: 'Parkir motor 42 unit, cetak karcis' },
-            { id: 'prk_2', date: getPastDateStr(3), amount: 95000, expense: 20000, note: 'Parkir motor 47 unit & konsumsi petugas' },
-            { id: 'prk_3', date: getPastDateStr(2), amount: 78000, expense: 10000, note: 'Parkir motor 39 unit' },
-            { id: 'prk_4', date: getPastDateStr(1), amount: 92000, expense: 15000, note: 'Parkir motor 46 unit & perbaikan tali' },
-            { id: 'prk_5', date: getPastDateStr(0), amount: 110000, expense: 25000, note: 'Parkir motor & mobil rapat' }
-        ];
+        const DEFAULT_STUDENTS = [];
+        const DEFAULT_SAVINGS = [];
+        const DEFAULT_PARKING = [];
 
         // Active Application In-Memory Models
         let students = [];
@@ -1357,11 +1480,12 @@
             const topBtn = document.getElementById('topCloudStatusBtn');
             const topText = document.getElementById('topCloudStatusText');
             const btnDisconnect = document.getElementById('btnDisconnectSb');
+            const settingsStatusDot = document.getElementById('settingsStatusDot');
+            const settingsStatusText = document.getElementById('settingsStatusText');
+            const settingsDbBadge = document.getElementById('settingsDbBadge');
 
             if (isConnected) {
-                if (statusDot) {
-                    statusDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse';
-                }
+                if (statusDot) statusDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse';
                 if (dbStatusText) {
                     dbStatusText.innerText = 'Supabase Cloud Terhubung';
                     dbStatusText.className = 'font-semibold text-emerald-400 text-[11px] truncate';
@@ -1373,16 +1497,14 @@
                 if (topBtn) {
                     topBtn.className = 'flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-all shadow-sm';
                 }
-                if (topText) {
-                    topText.innerText = 'Supabase Live';
-                }
-                if (btnDisconnect) {
-                    btnDisconnect.classList.remove('hidden');
-                }
+                if (topText) topText.innerText = 'Supabase Live';
+                if (btnDisconnect) btnDisconnect.classList.remove('hidden');
+
+                if (settingsStatusDot) settingsStatusDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500';
+                if (settingsStatusText) settingsStatusText.innerText = 'Terhubung ke Supabase Cloud (Live)';
+                if (settingsDbBadge) settingsDbBadge.className = 'flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200';
             } else {
-                if (statusDot) {
-                    statusDot.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse';
-                }
+                if (statusDot) statusDot.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse';
                 if (dbStatusText) {
                     dbStatusText.innerText = 'Mode Penyimpanan Lokal';
                     dbStatusText.className = 'font-semibold text-amber-300 text-[11px] truncate';
@@ -1394,12 +1516,12 @@
                 if (topBtn) {
                     topBtn.className = 'flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-xl border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 transition-all shadow-sm';
                 }
-                if (topText) {
-                    topText.innerText = 'Hubungkan Supabase';
-                }
-                if (btnDisconnect) {
-                    btnDisconnect.classList.add('hidden');
-                }
+                if (topText) topText.innerText = 'Hubungkan Supabase';
+                if (btnDisconnect) btnDisconnect.classList.add('hidden');
+
+                if (settingsStatusDot) settingsStatusDot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse';
+                if (settingsStatusText) settingsStatusText.innerText = 'Mode Penyimpanan Lokal (Offline)';
+                if (settingsDbBadge) settingsDbBadge.className = 'flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200';
             }
         }
 
@@ -1683,13 +1805,28 @@
         // 4. NAVIGATION & VIEW RENDERERS
         // ==========================================
         function showSection(sectionId) {
-            const sections = ['dashboard', 'savings', 'parking', 'students', 'reports', 'users'];
+            // Forward 'users' to 'settings'
+            if (sectionId === 'users') {
+                sectionId = 'settings';
+            }
+
+            // Batasi akses: 'students' dan 'settings' HANYA untuk Super Admin
+            const isSuper = currentUser && (currentUser.role === 'super_admin' || currentUser.role === 'Admin');
+            if ((sectionId === 'students' || sectionId === 'settings') && !isSuper) {
+                showToast('Akses ditolak! Menu ini hanya dapat diakses oleh Super Admin.', 'error');
+                showSection('dashboard');
+                return;
+            }
+
+            const sections = ['dashboard', 'savings', 'parking', 'students', 'reports', 'settings'];
             
             // Sembunyikan semua section
             sections.forEach(sec => {
                 const secEl = document.getElementById(`sec-${sec}`);
                 if (secEl) secEl.classList.add('hidden');
             });
+            const secUsers = document.getElementById('sec-users');
+            if (secUsers) secUsers.classList.add('hidden');
 
             // Reset seluruh tombol navigasi menjadi tidak aktif
             document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -1714,7 +1851,7 @@
                 parking: 'Pencatatan Rekap Parkir',
                 students: 'Kelola Data Master Siswa',
                 reports: 'Pusat Laporan & Cetak Buku Tabungan',
-                users: 'Manajemen Pengguna & Otoritas'
+                settings: 'Pengaturan Sistem & Database'
             };
             const titleEl = document.getElementById('pageTitle');
             if (titleEl) titleEl.innerText = titleMap[sectionId] || 'EduVault';
@@ -1722,6 +1859,11 @@
             if (sectionId === 'reports') {
                 handleReportTypeChange();
                 applyReportFilter();
+            }
+
+            if (sectionId === 'settings') {
+                renderUsers();
+                populateSettingsDatabaseForm();
             }
 
             // Close mobile sidebar if open
@@ -3290,10 +3432,137 @@
                 window.print();
             }, 300);
         }
+        // ==========================================
+        // 10. PENGATURAN SISTEM (USER & DATABASE)
+        // ==========================================
+        function switchSettingsTab(tabName) {
+            const btnUsers = document.getElementById('tabBtnUsers');
+            const btnDb = document.getElementById('tabBtnDatabase');
+            const contentUsers = document.getElementById('settingsTabUsers');
+            const contentDb = document.getElementById('settingsTabDatabase');
 
-        // ==========================================
-        // 10. USER & ADMIN MANAGEMENT
-        // ==========================================
+            if (tabName === 'users') {
+                if (btnUsers) {
+                    btnUsers.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white text-slate-900 shadow-sm flex items-center gap-2 cursor-pointer';
+                }
+                if (btnDb) {
+                    btnDb.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-2 cursor-pointer';
+                }
+                if (contentUsers) contentUsers.classList.remove('hidden');
+                if (contentDb) contentDb.classList.add('hidden');
+                renderUsers();
+            } else {
+                if (btnDb) {
+                    btnDb.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white text-slate-900 shadow-sm flex items-center gap-2 cursor-pointer';
+                }
+                if (btnUsers) {
+                    btnUsers.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-2 cursor-pointer';
+                }
+                if (contentDb) contentDb.classList.remove('hidden');
+                if (contentUsers) contentUsers.classList.add('hidden');
+                populateSettingsDatabaseForm();
+            }
+            safeLucide();
+        }
+
+        function populateSettingsDatabaseForm() {
+            const cfg = getSupabaseConfig();
+            const urlInput = document.getElementById('settingSupabaseUrl');
+            const keyInput = document.getElementById('settingSupabaseKey');
+            if (urlInput) urlInput.value = cfg.url || '';
+            if (keyInput) keyInput.value = cfg.anonKey || '';
+
+            const statusDot = document.getElementById('settingsStatusDot');
+            const statusText = document.getElementById('settingsStatusText');
+            const badge = document.getElementById('settingsDbBadge');
+
+            if (isSupabaseConfigured() && supabaseClient) {
+                if (statusDot) statusDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500';
+                if (statusText) statusText.innerText = 'Terhubung ke Supabase Cloud (Live)';
+                if (badge) badge.className = 'flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200';
+            } else {
+                if (statusDot) statusDot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse';
+                if (statusText) statusText.innerText = 'Mode Penyimpanan Lokal (Offline)';
+                if (badge) badge.className = 'flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200';
+            }
+        }
+
+        async function handleSaveSupabaseConfigInline(e) {
+            e.preventDefault();
+            const url = document.getElementById('settingSupabaseUrl').value.trim();
+            const anonKey = document.getElementById('settingSupabaseKey').value.trim();
+
+            if (!url || !anonKey) {
+                showToast('URL dan Anon Key wajib diisi!', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btnSaveSupabaseInline');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Menghubungkan...</span>';
+                safeLucide();
+            }
+
+            try {
+                localStorage.setItem(STORAGE_KEY_CONFIG, JSON.stringify({ url, anonKey }));
+                if (document.getElementById('sbUrl')) document.getElementById('sbUrl').value = url;
+                if (document.getElementById('sbKey')) document.getElementById('sbKey').value = anonKey;
+
+                await initSupabase();
+                await syncData(true);
+                populateSettingsDatabaseForm();
+                updateSupabaseUIBadge(true);
+                showToast('Koneksi Supabase berhasil disimpan dan aktif!', 'success');
+            } catch (err) {
+                showToast(`Gagal menghubungkan Supabase: ${err.message}`, 'error');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i><span>Simpan & Hubungkan Database</span>';
+                    safeLucide();
+                }
+            }
+        }
+
+        async function testSupabaseConnectionInline() {
+            const url = document.getElementById('settingSupabaseUrl').value.trim();
+            const anonKey = document.getElementById('settingSupabaseKey').value.trim();
+
+            if (!url || !anonKey) {
+                showToast('Masukkan URL dan Anon Key terlebih dahulu!', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('btnTestSupabaseInline');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Menguji...</span>';
+                safeLucide();
+            }
+
+            try {
+                if (typeof window.supabase === 'undefined') {
+                    throw new Error('Pustaka Supabase JS belum siap.');
+                }
+                const testClient = window.supabase.createClient(url, anonKey);
+                const { error } = await testClient.from('students').select('count', { count: 'exact', head: true });
+                if (error && error.code !== 'PGRST116') {
+                    const resUsers = await testClient.from('app_users').select('count', { count: 'exact', head: true });
+                    if (resUsers.error) throw resUsers.error;
+                }
+                showToast('Uji koneksi BERHASIL! Database Supabase dapat diakses.', 'success');
+            } catch (err) {
+                showToast(`Uji koneksi gagal: ${err.message || 'Periksa URL / Anon Key / Skema SQL'}`, 'error');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i data-lucide="activity" class="w-3.5 h-3.5"></i><span>Uji Koneksi</span>';
+                    safeLucide();
+                }
+            }
+        }
+
         function renderUsers() {
             const tbody = document.getElementById('usersTableBody');
             if (!tbody) return;
@@ -3312,27 +3581,32 @@
                 return;
             }
 
-            tbody.innerHTML = pagedUsers.map(u => `
+            tbody.innerHTML = pagedUsers.map(u => {
+                const isSuper = u.role === 'super_admin' || u.role === 'Admin';
+                const roleBadge = isSuper 
+                    ? '<span class="px-2.5 py-0.5 text-[10px] font-black rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">👑 Super Admin</span>'
+                    : '<span class="px-2.5 py-0.5 text-[10px] font-bold rounded-md bg-slate-100 text-slate-700 border border-slate-200">👤 User Biasa</span>';
+
+                return `
                 <tr class="hover:bg-slate-50 transition-colors">
                     <td class="p-3.5 pl-5 font-extrabold text-slate-900">${u.name}</td>
                     <td class="p-3.5 font-mono text-slate-600 font-bold">${u.username}</td>
                     <td class="p-3.5">
-                        <span class="px-2.5 py-0.5 text-[10px] font-black rounded-md ${u.role === 'Admin' ? 'bg-brand-100 text-brand-700 border border-brand-200' : 'bg-slate-100 text-slate-700 border border-slate-200'}">
-                            ${u.role}
-                        </span>
+                        ${roleBadge}
                     </td>
                     <td class="p-3.5 text-center pr-5">
                         <div class="flex items-center justify-center gap-1">
-                            <button onclick="editUser('${u.id}')" class="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-all" title="Edit User">
+                            <button onclick="editUser('${u.id}')" class="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-all cursor-pointer" title="Edit Pengguna">
                                 <i data-lucide="edit-3" class="w-4 h-4"></i>
                             </button>
-                            <button onclick="deleteUser('${u.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all" title="Hapus User">
+                            <button onclick="deleteUser('${u.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all cursor-pointer" title="Hapus Pengguna">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
                         </div>
                     </td>
                 </tr>
-            `).join('');
+                `;
+            }).join('');
 
             renderPaginationControls('usersPagination', currentPageUsers, totalPages, totalItems, 'changeUsersPage');
             safeLucide();
@@ -3341,6 +3615,7 @@
         function openAddUserModal() {
             document.getElementById('userForm').reset();
             document.getElementById('userEditId').value = '';
+            document.getElementById('usrRole').value = 'user';
             document.getElementById('userModalTitle').innerText = 'Tambah Pengguna Baru';
             document.getElementById('userModal').classList.remove('hidden');
         }
@@ -3357,7 +3632,7 @@
             document.getElementById('usrName').value = user.name;
             document.getElementById('usrUsername').value = user.username;
             document.getElementById('usrPassword').value = user.password;
-            document.getElementById('usrRole').value = user.role || 'Petugas';
+            document.getElementById('usrRole').value = (user.role === 'super_admin' || user.role === 'Admin') ? 'super_admin' : 'user';
 
             document.getElementById('userModalTitle').innerText = 'Edit Data Pengguna';
             document.getElementById('userModal').classList.remove('hidden');
@@ -3369,7 +3644,7 @@
             const name = document.getElementById('usrName').value.trim();
             const username = document.getElementById('usrUsername').value.trim();
             const password = document.getElementById('usrPassword').value.trim();
-            const role = document.getElementById('usrRole').value;
+            const role = document.getElementById('usrRole').value || 'user';
 
             if (editId) {
                 if (users.some(u => u.username.toLowerCase() === username.toLowerCase() && u.id !== editId)) {
@@ -3426,8 +3701,16 @@
                 return;
             }
             if (users.length <= 1) {
-                showToast('Tidak bisa menghapus user terakhir!', 'error');
+                showToast('Tidak bisa menghapus user terakhir di sistem!', 'error');
                 return;
+            }
+            const userToDelete = users.find(u => u.id === id);
+            if (userToDelete && (userToDelete.role === 'super_admin' || userToDelete.role === 'Admin')) {
+                const superAdminCount = users.filter(u => u.role === 'super_admin' || u.role === 'Admin').length;
+                if (superAdminCount <= 1) {
+                    showToast('Tidak bisa menghapus Super Admin satu-satunya di sistem!', 'error');
+                    return;
+                }
             }
 
             openConfirmModal('Hapus Pengguna', 'Hapus pengguna ini dari sistem?', async () => {
@@ -3482,7 +3765,8 @@
                 sessionStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify(found));
                 document.getElementById('loginOverlay').classList.add('hidden');
                 updateUserUI();
-                showToast(`Selamat datang kembali, ${found.name}!`, 'success');
+                const isSuper = found.role === 'super_admin' || found.role === 'Admin';
+                showToast(`Selamat datang, ${found.name}! Masuk sebagai ${isSuper ? 'Super Admin' : 'User Biasa'}.`, 'success');
             } else {
                 showToast('Username atau password yang dimasukkan salah!', 'error');
             }
@@ -3504,19 +3788,47 @@
             const initials = nameSegments.map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
             const avatarEl = document.getElementById('userAvatar');
-            if (avatarEl) avatarEl.innerText = initials || 'AD';
+            if (avatarEl) avatarEl.innerText = initials || 'SA';
 
             const topNameEl = document.getElementById('topUserName');
             if (topNameEl) topNameEl.innerText = currentUser.name || 'User';
 
+            const isSuper = currentUser.role === 'super_admin' || currentUser.role === 'Admin';
+            const roleLabel = isSuper ? 'Super Admin' : 'User Biasa';
+
             const topRoleEl = document.getElementById('topUserRole');
-            if (topRoleEl) topRoleEl.innerText = currentUser.role || '-';
+            if (topRoleEl) {
+                topRoleEl.innerText = roleLabel;
+                topRoleEl.className = isSuper 
+                    ? 'text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200'
+                    : 'text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200';
+            }
 
             const sideRoleEl = document.getElementById('sideRoleText');
-            if (sideRoleEl) sideRoleEl.innerText = `${currentUser.role || 'Petugas'} • EduVault`;
+            if (sideRoleEl) sideRoleEl.innerText = `${roleLabel} • EduVault`;
+
+            // ATURAN AKSES MENU:
+            // "menu pengaturan dan data siswa hanya tampil di login super admin saja"
+            const navStudents = document.getElementById('nav-students');
+            const navSettings = document.getElementById('nav-settings');
+
+            if (isSuper) {
+                if (navStudents) navStudents.classList.remove('hidden');
+                if (navSettings) navSettings.classList.remove('hidden');
+            } else {
+                if (navStudents) navStudents.classList.add('hidden');
+                if (navSettings) navSettings.classList.add('hidden');
+
+                // Jika sedang membuka section data siswa atau pengaturan, kembalikan ke dashboard
+                const secStudents = document.getElementById('sec-students');
+                const secSettings = document.getElementById('sec-settings');
+                if ((secStudents && !secStudents.classList.contains('hidden')) || (secSettings && !secSettings.classList.contains('hidden'))) {
+                    showSection('dashboard');
+                }
+            }
 
             const repOfficer = document.getElementById('repOfficerName');
-            if (repOfficer) repOfficer.innerText = currentUser.name || 'Admin';
+            if (repOfficer) repOfficer.innerText = currentUser.name || 'Petugas';
 
             const sigOfficer = document.getElementById('signatureOfficerName');
             if (sigOfficer) sigOfficer.innerText = `( ${currentUser.name || 'Administrator'} )`;
@@ -3717,9 +4029,14 @@ CREATE TABLE IF NOT EXISTS public.app_users (
     name TEXT NOT NULL,
     username TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
-    role TEXT CHECK (role IN ('Admin', 'Petugas')) DEFAULT 'Petugas',
+    role TEXT CHECK (role IN ('super_admin', 'user')) DEFAULT 'user',
     created_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- AKUN DEFAULT SUPER ADMIN (Tanpa data dummy)
+INSERT INTO public.app_users (id, name, username, password, role)
+VALUES ('usr_superadmin', 'Super Administrator', 'admin', 'admin123', 'super_admin')
+ON CONFLICT (username) DO NOTHING;
 
 -- 2. TABEL DATA SISWA
 CREATE TABLE IF NOT EXISTS public.students (
@@ -3767,16 +4084,45 @@ CREATE POLICY "Anon Full Access Savings" ON public.savings_transactions FOR ALL 
 CREATE POLICY "Anon Full Access Parking" ON public.parking_logs FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);`;
 
         function copySqlSchemaToClipboard() {
-            navigator.clipboard.writeText(SQL_SCHEMA_TEXT).then(() => {
+            if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(SQL_SCHEMA_TEXT).then(() => {
+                    const btnText = document.getElementById('copySqlBtnText');
+                    const btnSettingsText = document.getElementById('copySqlSettingsText');
+                    if (btnText) btnText.innerText = 'Tersalin!';
+                    if (btnSettingsText) btnSettingsText.innerText = 'Tersalin ke Clipboard!';
+                    showToast('Skrip SQL Supabase berhasil disalin ke Clipboard!', 'success');
+                    setTimeout(() => {
+                        if (btnText) btnText.innerText = 'Salin SQL';
+                        if (btnSettingsText) btnSettingsText.innerText = 'Salin Skrip SQL Supabase';
+                    }, 2000);
+                }).catch(() => {
+                    fallbackCopySql();
+                });
+            } else {
+                fallbackCopySql();
+            }
+        }
+
+        function fallbackCopySql() {
+            try {
+                const textArea = document.createElement('textarea');
+                textArea.value = SQL_SCHEMA_TEXT;
+                document.body.appendChild(textArea);
+                if (textArea.select) textArea.select();
+                if (document.execCommand) document.execCommand('copy');
+                document.body.removeChild(textArea);
                 const btnText = document.getElementById('copySqlBtnText');
+                const btnSettingsText = document.getElementById('copySqlSettingsText');
                 if (btnText) btnText.innerText = 'Tersalin!';
+                if (btnSettingsText) btnSettingsText.innerText = 'Tersalin ke Clipboard!';
                 showToast('Skrip SQL Supabase berhasil disalin ke Clipboard!', 'success');
                 setTimeout(() => {
                     if (btnText) btnText.innerText = 'Salin SQL';
+                    if (btnSettingsText) btnSettingsText.innerText = 'Salin Skrip SQL Supabase';
                 }, 2000);
-            }).catch(() => {
+            } catch (e) {
                 showToast('Gagal menyalin, silakan buka file supabase_schema.sql di proyek Anda.', 'error');
-            });
+            }
         }
 
         // ==========================================
