@@ -487,6 +487,28 @@
             <!-- SECTION 2: TRANSAKSI TABUNGAN                  -->
             <!-- ============================================== -->
             <section id="sec-savings" class="hidden space-y-6">
+                <!-- Action Header: Impor & Template Tabungan -->
+                <div class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                            <span>Transaksi & Tabungan Siswa</span>
+                        </h3>
+                        <p class="text-xs text-slate-500 font-medium">Catat setoran dan penarikan kas tabungan siswa harian atau impor riwayat dari file Excel</p>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <button onclick="downloadSavingsTemplate()" class="px-3.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm cursor-pointer" title="Download Template Excel Transaksi Tabungan">
+                            <i data-lucide="download" class="w-3.5 h-3.5 text-emerald-600"></i>
+                            <span>Template Excel Tabungan</span>
+                        </button>
+
+                        <label class="px-3.5 py-2 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm cursor-pointer" title="Impor data transaksi tabungan via file Excel">
+                            <i data-lucide="file-up" class="w-3.5 h-3.5"></i>
+                            <span>Impor Tabungan (Excel)</span>
+                            <input type="file" id="savingsExcelFileInput" accept=".xlsx, .xls, .csv" onchange="handleSavingsExcelUpload(event)" class="hidden">
+                        </label>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <!-- FORM INPUT TRANSAKSI -->
                     <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
@@ -1309,6 +1331,83 @@
                     <i data-lucide="check" class="w-3.5 h-3.5"></i>
                     <span>Konfirmasi & Simpan Semua</span>
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- MODAL: PRATINJAU IMPOR TABUNGAN EXCEL                          -->
+    <!-- ============================================================== -->
+    <div id="savingsExcelPreviewModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-4xl p-6 sm:p-7 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                        <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-900">Pratinjau Impor Transaksi Tabungan</h3>
+                        <p class="text-xs text-slate-400 font-medium" id="savingsExcelImportCount">0 transaksi siap diimpor</p>
+                    </div>
+                </div>
+                <button onclick="closeSavingsExcelModal()" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Summary Chips -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 text-slate-700">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Transaksi</p>
+                    <p class="text-sm font-black text-slate-800 mt-0.5" id="previewSavingsTotalRows">0 baris</p>
+                </div>
+                <div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-200/80 text-emerald-800">
+                    <p class="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">Total Nominal</p>
+                    <p class="text-sm font-black text-emerald-700 mt-0.5" id="previewSavingsTotalAmount">Rp 0</p>
+                </div>
+                <div class="p-3 rounded-2xl bg-sky-50 border border-sky-200/80 text-sky-800">
+                    <p class="text-[10px] text-sky-600 font-bold uppercase tracking-wider">Siswa Terdaftar</p>
+                    <p class="text-sm font-black text-sky-700 mt-0.5" id="previewSavingsMatchedCount">0 transaksi</p>
+                </div>
+                <div class="p-3 rounded-2xl bg-indigo-50 border border-indigo-200/80 text-indigo-800">
+                    <p class="text-[10px] text-indigo-600 font-bold uppercase tracking-wider">Siswa Baru (Auto)</p>
+                    <p class="text-sm font-black text-indigo-700 mt-0.5" id="previewSavingsNewCount">0 siswa</p>
+                </div>
+            </div>
+
+            <!-- Table Preview -->
+            <div class="overflow-x-auto max-h-72 border border-slate-200 rounded-2xl custom-scrollbar">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-50/90 text-slate-600 uppercase font-bold text-[10px] tracking-wider border-b border-slate-200 sticky top-0 backdrop-blur-sm">
+                        <tr>
+                            <th class="p-3 pl-4">No</th>
+                            <th class="p-3">Tanggal</th>
+                            <th class="p-3">NIS</th>
+                            <th class="p-3">Nama Siswa</th>
+                            <th class="p-3">Kecocokan Siswa</th>
+                            <th class="p-3">Tipe</th>
+                            <th class="p-3 text-right">Nominal</th>
+                            <th class="p-3 pr-4">Catatan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="savingsExcelPreviewTableBody" class="divide-y divide-slate-100 font-semibold text-slate-700">
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Action Controls -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+                <div class="flex items-center gap-2 text-[11px] text-slate-500 font-medium">
+                    <i data-lucide="info" class="w-4 h-4 text-brand-600 flex-shrink-0"></i>
+                    <span>Kecocokan dicek via <strong>NIS</strong> atau <strong>Nama Siswa</strong>. Siswa yang belum ada akan otomatis didaftarkan ke data siswa.</span>
+                </div>
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    <button type="button" onclick="closeSavingsExcelModal()" class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-100 transition-all cursor-pointer">Batal</button>
+                    <button type="button" id="btnConfirmSavingsImport" onclick="confirmSavingsExcelImport()" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 flex items-center gap-1.5 transition-all cursor-pointer">
+                        <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                        <span>Konfirmasi & Simpan Semua</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -2787,6 +2886,384 @@
         }
 
         // ==========================================
+        // FITUR IMPOR TRANSAKSI TABUNGAN (EXCEL)
+        // ==========================================
+        let tempSavingsImportData = [];
+        let tempSavingsNewStudents = [];
+
+        function downloadSavingsTemplate() {
+            const templateData = [
+                {
+                    'NIS': '25261753128',
+                    'Nama': 'Adinda Maylahana',
+                    'Tipe': 'SETOR',
+                    'Nominal': 10000,
+                    'Tanggal': '2026-07-21',
+                    'Waktu': '',
+                    'Catatan': 'Setoran tunai'
+                },
+                {
+                    'NIS': '25261753128',
+                    'Nama': 'Adinda Maylahana',
+                    'Tipe': 'SETOR',
+                    'Nominal': 10000,
+                    'Tanggal': '2026-08-06',
+                    'Waktu': '',
+                    'Catatan': 'Setoran tunai'
+                },
+                {
+                    'NIS': '26271751002',
+                    'Nama': 'Adnan Surya Permana Putra',
+                    'Tipe': 'SETOR',
+                    'Nominal': 100000,
+                    'Tanggal': '2026-09-03',
+                    'Waktu': '',
+                    'Catatan': 'Setoran tunai'
+                },
+                {
+                    'NIS': '25261751005',
+                    'Nama': 'Ahmad Saepul Anwar',
+                    'Tipe': 'SETOR',
+                    'Nominal': 15000,
+                    'Tanggal': '2026-07-22',
+                    'Waktu': '',
+                    'Catatan': 'Setoran tunai'
+                },
+                {
+                    'NIS': '25261751005',
+                    'Nama': 'Ahmad Saepul Anwar',
+                    'Tipe': 'TARIK',
+                    'Nominal': 5000,
+                    'Tanggal': '2026-07-27',
+                    'Waktu': '',
+                    'Catatan': 'Tarik jajan'
+                }
+            ];
+
+            const ws = XLSX.utils.json_to_sheet(templateData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Tabungan");
+            XLSX.writeFile(wb, "Template_Impor_Tabungan_Siswa.xlsx");
+            showToast('Template Excel transaksi tabungan berhasil diunduh!', 'success');
+        }
+
+        function handleSavingsExcelUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const data = new Uint8Array(evt.target.result);
+                    const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false });
+
+                    processSavingsExcelData(json);
+                } catch (err) {
+                    showToast('Gagal membaca berkas Excel tabungan: ' + err.message, 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            e.target.value = '';
+        }
+
+        function parseSavingsDate(val) {
+            if (!val) return getTodayIsoDate();
+            if (val instanceof Date) {
+                return val.toISOString().split('T')[0];
+            }
+            const s = String(val).trim();
+            if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+
+            // Format DD/MM/YYYY or DD-MM-YYYY
+            const ddmmyyyy = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+            if (ddmmyyyy) {
+                return `${ddmmyyyy[3]}-${ddmmyyyy[2].padStart(2, '0')}-${ddmmyyyy[1].padStart(2, '0')}`;
+            }
+
+            // Numeric excel serial date
+            if (!isNaN(Number(s)) && Number(s) > 30000 && Number(s) < 70000) {
+                const date = new Date(Math.round((Number(s) - 25569) * 86400 * 1000));
+                return date.toISOString().split('T')[0];
+            }
+
+            return getTodayIsoDate();
+        }
+
+        function processSavingsExcelData(rows) {
+            if (!rows || rows.length <= 1) {
+                showToast('File Excel kosong atau format tidak sesuai!', 'error');
+                return;
+            }
+
+            // 1. Deteksi nama kolom pada baris header (baris 0)
+            const headerRow = rows[0].map(h => String(h || '').toLowerCase().trim());
+            let colNis = headerRow.findIndex(h => h === 'nis' || h.includes('induk'));
+            let colName = headerRow.findIndex(h => h.includes('nama') || h.includes('siswa') || h.includes('student'));
+            let colType = headerRow.findIndex(h => h.includes('tipe') || h.includes('jenis') || h.includes('type'));
+            let colAmount = headerRow.findIndex(h => h.includes('nominal') || h.includes('jumlah') || h.includes('amount') || h.includes('rp'));
+            let colDate = headerRow.findIndex(h => h.includes('tanggal') || h.includes('tgl') || h.includes('date'));
+            let colNote = headerRow.findIndex(h => h.includes('catatan') || h.includes('keterangan') || h.includes('note') || h.includes('ket'));
+
+            // Fallback ke posisi kolom jika header tidak ditemukan
+            if (colNis === -1) colNis = 0;
+            if (colName === -1) colName = 1;
+            if (colType === -1) colType = 2;
+            if (colAmount === -1) colAmount = 3;
+            if (colDate === -1) colDate = 4;
+            if (colNote === -1) colNote = 6;
+
+            tempSavingsImportData = [];
+            tempSavingsNewStudents = [];
+            const tempNewStudentsMap = new Map();
+
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (!row || row.length === 0) continue;
+
+                const rawNis = String(row[colNis] || '').trim();
+                const rawName = String(row[colName] || '').trim();
+                const rawType = String(row[colType] || '').trim().toUpperCase();
+                const rawAmount = row[colAmount];
+                const rawDate = row[colDate];
+                const rawNote = String(row[colNote] || '').trim();
+
+                // Bersihkan nominal (Rp 10.000 / 10000)
+                let amount = 0;
+                if (typeof rawAmount === 'number') {
+                    amount = Math.abs(rawAmount);
+                } else {
+                    const cleanAmtStr = String(rawAmount || '').replace(/[^0-9]/g, '');
+                    amount = Number(cleanAmtStr) || 0;
+                }
+
+                if (amount <= 0 && !rawNis && !rawName) continue; // baris kosong
+
+                const type = (rawType.includes('TARIK') || rawType.includes('KELUAR') || rawType.includes('DEBIT')) ? 'TARIK' : 'SETOR';
+                const date = parseSavingsDate(rawDate);
+                const note = rawNote || (type === 'SETOR' ? 'Setoran tunai' : 'Penarikan tunai');
+
+                // ========================================================
+                // KRITERIA KECOCOKAN DATA: BOLEH NIS ATAU NAMA SISWA
+                // ========================================================
+                let matchedStudent = null;
+                let matchReason = '';
+
+                // Kriteria 1: Cocokkan berdasarkan NIS
+                if (rawNis) {
+                    matchedStudent = students.find(s => String(s.nis).trim() === rawNis);
+                    if (matchedStudent) {
+                        matchReason = 'NIS Cocok (' + rawNis + ')';
+                    }
+                }
+
+                // Kriteria 2: Jika belum cocok NIS, cocokkan berdasarkan Nama Siswa (case-insensitive)
+                if (!matchedStudent && rawName) {
+                    const lowerSearchName = rawName.toLowerCase();
+                    matchedStudent = students.find(s => String(s.name || '').trim().toLowerCase() === lowerSearchName);
+                    if (matchedStudent) {
+                        matchReason = 'Nama Siswa Cocok';
+                    }
+                }
+
+                // Kriteria 3: Cek antrean siswa baru pada file yang sama
+                if (!matchedStudent) {
+                    if (rawNis && tempNewStudentsMap.has(rawNis)) {
+                        matchedStudent = tempNewStudentsMap.get(rawNis);
+                        matchReason = 'Siswa Baru (Antrean)';
+                    } else if (rawName && tempNewStudentsMap.has(rawName.toLowerCase())) {
+                        matchedStudent = tempNewStudentsMap.get(rawName.toLowerCase());
+                        matchReason = 'Siswa Baru (Antrean)';
+                    }
+                }
+
+                let finalNis = '';
+                let finalName = '';
+                let isNewStudent = false;
+
+                if (matchedStudent) {
+                    finalNis = matchedStudent.nis;
+                    finalName = matchedStudent.name;
+                } else {
+                    // Siswa baru yang belum pernah terdaftar di master siswa
+                    isNewStudent = true;
+                    finalNis = rawNis || ('STD' + Math.floor(100000 + Math.random() * 900000));
+                    finalName = rawName || ('Siswa ' + finalNis);
+                    matchReason = 'Siswa Baru (Didaftarkan)';
+
+                    const newStudObj = {
+                        id: 'std_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+                        nis: finalNis,
+                        name: finalName,
+                        jk: 'L',
+                        class: 'Umum',
+                        plat: '',
+                        balance: 0
+                    };
+
+                    if (rawNis) tempNewStudentsMap.set(rawNis, newStudObj);
+                    if (rawName) tempNewStudentsMap.set(rawName.toLowerCase(), newStudObj);
+                    tempSavingsNewStudents.push(newStudObj);
+                }
+
+                tempSavingsImportData.push({
+                    studentNis: finalNis,
+                    studentName: finalName,
+                    type: type,
+                    amount: amount,
+                    date: date,
+                    note: note,
+                    matchReason: matchReason,
+                    isNewStudent: isNewStudent
+                });
+            }
+
+            if (tempSavingsImportData.length === 0) {
+                showToast('Tidak ada transaksi valid ditemukan dalam file Excel!', 'error');
+                return;
+            }
+
+            // Tampilkan Pratinjau di Modal
+            const tbody = document.getElementById('savingsExcelPreviewTableBody');
+            const totalAmount = tempSavingsImportData.reduce((acc, t) => acc + t.amount, 0);
+            const matchedCount = tempSavingsImportData.filter(t => !t.isNewStudent).length;
+            const newCount = tempSavingsNewStudents.length;
+
+            document.getElementById('previewSavingsTotalRows').innerText = `${tempSavingsImportData.length} baris`;
+            document.getElementById('previewSavingsTotalAmount').innerText = formatRp(totalAmount);
+            document.getElementById('previewSavingsMatchedCount').innerText = `${matchedCount} transaksi`;
+            document.getElementById('previewSavingsNewCount').innerText = `${newCount} siswa baru`;
+            document.getElementById('savingsExcelImportCount').innerText = `${tempSavingsImportData.length} transaksi siap diimpor ke sistem`;
+
+            tbody.innerHTML = tempSavingsImportData.map((tx, idx) => {
+                const matchBadge = tx.isNewStudent 
+                    ? '<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">🆕 Baru Didaftarkan</span>'
+                    : '<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">✅ ' + tx.matchReason + '</span>';
+
+                const typeBadge = tx.type === 'SETOR'
+                    ? '<span class="px-2 py-0.5 text-[10px] font-black rounded-md bg-emerald-100 text-emerald-700">+ SETOR</span>'
+                    : '<span class="px-2 py-0.5 text-[10px] font-black rounded-md bg-rose-100 text-rose-700">- TARIK</span>';
+
+                return `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="p-2.5 pl-4 font-semibold text-slate-500">${idx + 1}</td>
+                    <td class="p-2.5 font-semibold text-slate-600">${tx.date}</td>
+                    <td class="p-2.5 font-mono font-bold text-slate-800">${tx.studentNis}</td>
+                    <td class="p-2.5 font-bold text-slate-900">${tx.studentName}</td>
+                    <td class="p-2.5">${matchBadge}</td>
+                    <td class="p-2.5">${typeBadge}</td>
+                    <td class="p-2.5 text-right font-black ${tx.type === 'SETOR' ? 'text-emerald-600' : 'text-rose-600'}">${formatRp(tx.amount)}</td>
+                    <td class="p-2.5 pr-4 text-slate-600 text-xs">${tx.note}</td>
+                </tr>
+                `;
+            }).join('');
+
+            document.getElementById('savingsExcelPreviewModal').classList.remove('hidden');
+            safeLucide();
+        }
+
+        function closeSavingsExcelModal() {
+            document.getElementById('savingsExcelPreviewModal').classList.add('hidden');
+            tempSavingsImportData = [];
+            tempSavingsNewStudents = [];
+        }
+
+        async function confirmSavingsExcelImport() {
+            if (tempSavingsImportData.length === 0) return;
+
+            const btn = document.getElementById('btnConfirmSavingsImport');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Menyimpan Transaksi...</span>';
+                safeLucide();
+            }
+
+            try {
+                // 1. Simpan siswa baru terlebih dahulu jika ada
+                if (tempSavingsNewStudents.length > 0) {
+                    for (const s of tempSavingsNewStudents) {
+                        if (!students.some(x => x.nis === s.nis)) {
+                            students.push(s);
+                        }
+                    }
+
+                    if (supabaseClient) {
+                        try {
+                            const newStudPayload = tempSavingsNewStudents.map(s => ({
+                                id: s.id,
+                                nis: s.nis,
+                                name: s.name,
+                                jk: s.jk,
+                                class: s.class,
+                                plat: s.plat || '',
+                                balance: 0
+                            }));
+                            await supabaseClient.from('students').upsert(newStudPayload, { onConflict: 'nis' });
+                        } catch (err) {
+                            console.warn('Supabase auto-create students warning:', err);
+                        }
+                    }
+                }
+
+                // 2. Tambahkan seluruh transaksi ke array riwayat
+                const newTxs = tempSavingsImportData.map(item => ({
+                    id: 'tx_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8),
+                    studentNis: item.studentNis,
+                    studentName: item.studentName,
+                    type: item.type,
+                    amount: item.amount,
+                    date: item.date,
+                    note: item.note
+                }));
+
+                savingsTransactions.push(...newTxs);
+
+                // 3. Simpan transaksi ke Supabase jika aktif
+                if (supabaseClient) {
+                    try {
+                        const txPayload = newTxs.map(t => ({
+                            id: t.id,
+                            student_nis: t.studentNis,
+                            student_name: t.studentName,
+                            type: t.type,
+                            amount: t.amount,
+                            date: t.date,
+                            note: t.note
+                        }));
+                        await supabaseClient.from('savings_transactions').insert(txPayload);
+                    } catch (err) {
+                        console.warn('Supabase savings insert warning:', err);
+                    }
+                }
+
+                // 4. Hitung ulang saldo setiap siswa & simpan ke penyimpanan lokal
+                recalculateStudentBalances();
+                saveDataToLocal();
+
+                // 5. Render ulang tampilan
+                renderAllViews();
+                renderDashboard();
+                renderDashboardChart();
+
+                const newStudentMsg = tempSavingsNewStudents.length > 0 
+                    ? ` (${tempSavingsNewStudents.length} siswa baru otomatis didaftarkan)` 
+                    : '';
+                showToast(`Sukses! ${newTxs.length} transaksi tabungan berhasil diimpor!${newStudentMsg}`, 'success');
+                closeSavingsExcelModal();
+            } catch (e) {
+                showToast(`Gagal mengimpor transaksi: ${e.message}`, 'error');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i><span>Konfirmasi & Simpan Semua</span>';
+                    safeLucide();
+                }
+            }
+        }
+
+        // ==========================================
         // 9. FINANCIAL REPORTING & PRINT CENTER
         // ==========================================
         function setReportPreset(preset) {
@@ -3815,7 +4292,10 @@
             }, 20);
             setTimeout(() => {
                 toast.classList.add('translate-y-3', 'opacity-0');
-                setTimeout(() => toast.remove(), 300);
+                setTimeout(() => {
+                    if (typeof toast.remove === 'function') toast.remove();
+                    else if (toast.parentNode) toast.parentNode.removeChild(toast);
+                }, 300);
             }, 3800);
         }
 
