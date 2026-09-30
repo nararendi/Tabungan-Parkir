@@ -38,6 +38,8 @@
 
     <!-- Supabase JS Client v2 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Supabase Global Configuration File (Auto-connect across browsers) -->
+    <script src="supabase-config.js"></script>
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- SheetJS (xlsx) CDN -->
@@ -238,6 +240,64 @@
                     </button>
                 </div>
             </div>
+
+            <!-- Status Koneksi Database Cloud pada Layar Login -->
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                <div class="flex items-center gap-1.5" id="loginDbStatusContainer">
+                    <span id="loginDbStatusDot" class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                    <span id="loginDbStatusText" class="text-slate-500 font-semibold text-[11px]">Database: Mode Lokal</span>
+                </div>
+                <button type="button" onclick="openLoginDatabaseModal()" class="text-brand-600 hover:text-brand-700 font-bold text-[11px] flex items-center gap-1 hover:underline cursor-pointer">
+                    <i data-lucide="database" class="w-3.5 h-3.5"></i>
+                    <span id="loginDbActionText">Hubungkan Supabase</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- MODAL: KONEKSI DATABASE SUPABASE DARI LAYAR LOGIN              -->
+    <!-- ============================================================== -->
+    <div id="loginDatabaseModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200/80 w-full max-w-md p-6 sm:p-7 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center font-bold">
+                        <i data-lucide="database" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-extrabold text-slate-900">Koneksi Database Supabase</h3>
+                        <p class="text-[11px] text-slate-400 font-medium">Hubungkan ke Supabase Cloud agar data tersinkron</p>
+                    </div>
+                </div>
+                <button onclick="closeLoginDatabaseModal()" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form id="loginDatabaseForm" onsubmit="handleLoginDatabaseSubmit(event)" class="space-y-3.5 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Project URL *</label>
+                    <input type="url" id="loginSbUrl" required placeholder="https://xxxxxxxxxxxxxxxx.supabase.co" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 font-mono focus:ring-2 focus:ring-brand-500 outline-none">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Anon / Public Key *</label>
+                    <textarea id="loginSbKey" required rows="3" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6..." class="w-full text-xs p-2.5 rounded-xl border border-slate-300 font-mono focus:ring-2 focus:ring-brand-500 outline-none"></textarea>
+                </div>
+                
+                <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-800 text-[11px] leading-relaxed">
+                    <i data-lucide="info" class="w-3.5 h-3.5 inline mr-1 text-amber-600"></i>
+                    Setelah disimpan di browser ini, data akun dan riwayat akan otomatis tersinkronisasi dari Supabase Cloud.
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-1">
+                    <button type="button" onclick="closeLoginDatabaseModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-100 cursor-pointer">Batal</button>
+                    <button type="submit" id="btnLoginSaveSb" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-md shadow-brand-600/20 flex items-center gap-1.5 cursor-pointer">
+                        <i data-lucide="link-2" class="w-3.5 h-3.5"></i>
+                        <span>Simpan & Hubungkan</span>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -1039,6 +1099,10 @@
                                         <i data-lucide="check" class="w-3.5 h-3.5"></i>
                                         <span>Simpan & Hubungkan Database</span>
                                     </button>
+                                    <button type="button" onclick="downloadSupabaseConfigFile()" class="px-4 py-2.5 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm cursor-pointer" title="Unduh file supabase-config.js agar seluruh browser otomatis terhubung tanpa input ulang">
+                                        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                                        <span>Unduh supabase-config.js</span>
+                                    </button>
                                 </div>
 
                                 <div class="flex items-center gap-2">
@@ -1603,9 +1667,18 @@
         // ==========================================
         function getSupabaseConfig() {
             try {
-                return JSON.parse(localStorage.getItem(STORAGE_KEY_CONFIG) || '{}');
-            } catch (e) {
+                // 1. Cek penyimpanan lokal browser (prioritas jika user melakukan kustomisasi di Pengaturan)
+                const local = JSON.parse(localStorage.getItem(STORAGE_KEY_CONFIG) || '{}');
+                if (local && local.url && local.anonKey) {
+                    return local;
+                }
+                // 2. Cek konfigurasi global dari supabase-config.js (otomatis untuk seluruh browser/perangkat)
+                if (window.EDUVAULT_DEFAULT_CONFIG && window.EDUVAULT_DEFAULT_CONFIG.url && window.EDUVAULT_DEFAULT_CONFIG.anonKey) {
+                    return window.EDUVAULT_DEFAULT_CONFIG;
+                }
                 return {};
+            } catch (e) {
+                return (window.EDUVAULT_DEFAULT_CONFIG && window.EDUVAULT_DEFAULT_CONFIG.url) ? window.EDUVAULT_DEFAULT_CONFIG : {};
             }
         }
 
@@ -1646,6 +1719,11 @@
             const settingsStatusText = document.getElementById('settingsStatusText');
             const settingsDbBadge = document.getElementById('settingsDbBadge');
 
+            // Elemen Status di Layar Login
+            const loginDot = document.getElementById('loginDbStatusDot');
+            const loginText = document.getElementById('loginDbStatusText');
+            const loginActionText = document.getElementById('loginDbActionText');
+
             if (isConnected) {
                 if (statusDot) statusDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse';
                 if (dbStatusText) {
@@ -1665,6 +1743,13 @@
                 if (settingsStatusDot) settingsStatusDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500';
                 if (settingsStatusText) settingsStatusText.innerText = 'Terhubung ke Supabase Cloud (Live)';
                 if (settingsDbBadge) settingsDbBadge.className = 'flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200';
+
+                if (loginDot) loginDot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+                if (loginText) {
+                    loginText.innerText = 'Database: Supabase Cloud (Live)';
+                    loginText.className = 'text-emerald-700 font-bold text-[11px]';
+                }
+                if (loginActionText) loginActionText.innerText = 'Ubah Koneksi';
             } else {
                 if (statusDot) statusDot.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse';
                 if (dbStatusText) {
@@ -1684,6 +1769,70 @@
                 if (settingsStatusDot) settingsStatusDot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse';
                 if (settingsStatusText) settingsStatusText.innerText = 'Mode Penyimpanan Lokal (Offline)';
                 if (settingsDbBadge) settingsDbBadge.className = 'flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200';
+
+                if (loginDot) loginDot.className = 'w-2 h-2 rounded-full bg-amber-500 animate-pulse';
+                if (loginText) {
+                    loginText.innerText = 'Database: Mode Lokal (Offline)';
+                    loginText.className = 'text-amber-700 font-semibold text-[11px]';
+                }
+                if (loginActionText) loginActionText.innerText = 'Hubungkan Supabase';
+            }
+        }
+
+        function openLoginDatabaseModal() {
+            const cfg = getSupabaseConfig();
+            const urlInput = document.getElementById('loginSbUrl');
+            const keyInput = document.getElementById('loginSbKey');
+            if (urlInput) urlInput.value = cfg.url || '';
+            if (keyInput) keyInput.value = cfg.anonKey || '';
+            document.getElementById('loginDatabaseModal').classList.remove('hidden');
+            safeLucide();
+        }
+
+        function closeLoginDatabaseModal() {
+            document.getElementById('loginDatabaseModal').classList.add('hidden');
+        }
+
+        async function handleLoginDatabaseSubmit(e) {
+            e.preventDefault();
+            const url = document.getElementById('loginSbUrl').value.trim();
+            const anonKey = document.getElementById('loginSbKey').value.trim();
+            const btn = document.getElementById('btnLoginSaveSb');
+
+            if (!url || !anonKey) {
+                showToast('Harap lengkapi URL dan Anon Key!', 'warning');
+                return;
+            }
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Menghubungkan...</span>';
+                safeLucide();
+            }
+
+            try {
+                if (typeof window.supabase === 'undefined') {
+                    throw new Error('Pustaka Supabase JS belum siap.');
+                }
+                const testClient = window.supabase.createClient(url, anonKey);
+                const { error } = await testClient.from('app_users').select('count', { count: 'exact', head: true });
+                if (error && error.code !== 'PGRST116') {
+                    throw error;
+                }
+
+                localStorage.setItem(STORAGE_KEY_CONFIG, JSON.stringify({ url, anonKey }));
+                initSupabase();
+                closeLoginDatabaseModal();
+                showToast('Sukses! Terhubung ke Supabase Cloud. Menyinkronkan data...', 'success');
+                await syncData(true);
+            } catch (err) {
+                showToast(`Gagal terhubung: ${err.message || 'Periksa URL / Anon Key'}`, 'error');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i data-lucide="link-2" class="w-3.5 h-3.5"></i><span>Simpan & Hubungkan</span>';
+                    safeLucide();
+                }
             }
         }
 
@@ -4331,6 +4480,35 @@
             }
         }
 
+        function downloadSupabaseConfigFile() {
+            const cfg = getSupabaseConfig();
+            if (!cfg.url || !cfg.anonKey) {
+                showToast('Masukkan dan simpan URL & Anon Key terlebih dahulu!', 'warning');
+                return;
+            }
+            const content = `// ==============================================================================
+// EDUVAULT - GLOBAL SUPABASE DATABASE CONFIGURATION
+// ==============================================================================
+// File konfigurasi ini menghubungkan seluruh browser & perangkat ke Supabase secara instan!
+// ==============================================================================
+
+window.EDUVAULT_DEFAULT_CONFIG = {
+    url: "${cfg.url}",
+    anonKey: "${cfg.anonKey}"
+};
+`;
+            const blob = new Blob([content], { type: 'text/javascript' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'supabase-config.js';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('File supabase-config.js berhasil diunduh! Gantikan file di proyek lalu deploy/push ke Git.', 'success');
+        }
+
         function renderUsers() {
             const tbody = document.getElementById('usersTableBody');
             if (!tbody) return;
@@ -4521,22 +4699,85 @@
             document.getElementById('loginPassword').value = password;
         }
 
-        function handleLoginSubmit(e) {
+        async function handleLoginSubmit(e) {
             e.preventDefault();
             const uInput = document.getElementById('loginUsername').value.trim();
             const pInput = document.getElementById('loginPassword').value.trim();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
 
-            const found = users.find(u => u.username.toLowerCase() === uInput.toLowerCase() && u.password === pInput);
+            if (!uInput || !pInput) {
+                showToast('Masukkan username dan password!', 'warning');
+                return;
+            }
 
-            if (found) {
-                currentUser = found;
-                sessionStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify(found));
-                document.getElementById('loginOverlay').classList.add('hidden');
-                updateUserUI();
-                const isSuper = found.role === 'super_admin' || found.role === 'Admin';
-                showToast(`Selamat datang, ${found.name}! Masuk sebagai ${isSuper ? 'Super Admin' : 'User Biasa'}.`, 'success');
-            } else {
-                showToast('Username atau password yang dimasukkan salah!', 'error');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Memverifikasi Akun...</span>';
+                safeLucide();
+            }
+
+            try {
+                let found = null;
+
+                // 1. Jika Supabase terhubung, verifikasi langsung ke database cloud
+                if (supabaseClient) {
+                    try {
+                        const { data: remoteUser, error } = await supabaseClient
+                            .from('app_users')
+                            .select('*')
+                            .ilike('username', uInput)
+                            .eq('password', pInput)
+                            .maybeSingle();
+
+                        if (remoteUser) {
+                            found = remoteUser;
+                            // Sinkronkan ke memory & local storage
+                            const idx = users.findIndex(u => u.id === remoteUser.id || u.username.toLowerCase() === remoteUser.username.toLowerCase());
+                            if (idx >= 0) {
+                                users[idx] = remoteUser;
+                            } else {
+                                users.push(remoteUser);
+                            }
+                            saveDataToLocal();
+                        }
+                    } catch (sbErr) {
+                        console.warn('Verifikasi online Supabase gagal, mencoba cache lokal:', sbErr);
+                    }
+                }
+
+                // 2. Fallback: cek ke array users lokal di memori
+                if (!found) {
+                    found = users.find(u => u.username.toLowerCase() === uInput.toLowerCase() && u.password === pInput);
+                }
+
+                if (found) {
+                    currentUser = found;
+                    sessionStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify(found));
+                    document.getElementById('loginOverlay').classList.add('hidden');
+                    updateUserUI();
+
+                    // Muat ulang data terbaru dari cloud setelah login
+                    if (supabaseClient) {
+                        syncData(true);
+                    }
+
+                    const isSuper = found.role === 'super_admin' || found.role === 'Admin';
+                    showToast(`Selamat datang, ${found.name}! Masuk sebagai ${isSuper ? 'Super Admin' : 'User Biasa'}.`, 'success');
+                } else {
+                    if (!isSupabaseConfigured()) {
+                        showToast('Akun tidak ditemukan di mode lokal. Jika akun terdaftar di Supabase, silakan klik "Hubungkan Supabase" terlebih dahulu!', 'error');
+                    } else {
+                        showToast('Username atau password yang dimasukkan salah!', 'error');
+                    }
+                }
+            } catch (err) {
+                showToast(`Terjadi kesalahan saat login: ${err.message}`, 'error');
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i data-lucide="log-in" class="w-4 h-4"></i><span>Masuk ke Aplikasi</span>';
+                    safeLucide();
+                }
             }
         }
 
@@ -4968,6 +5209,16 @@ CREATE POLICY "Anon Full Access Parking" ON public.parking_logs FOR ALL TO anon,
                     closeExcelModal();
                     closeSupabaseModal();
                     closeSqlGuideModal();
+                    closeLoginDatabaseModal();
+                    closeSavingsExcelModal();
+                    closeParkingExcelModal();
+                }
+            });
+
+            // Auto-refresh when tab/window becomes active
+            window.addEventListener('focus', () => {
+                if (supabaseClient && currentUser) {
+                    syncData(true);
                 }
             });
 
