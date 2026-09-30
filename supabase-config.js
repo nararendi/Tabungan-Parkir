@@ -1,20 +1,12 @@
 // ==============================================================================
 // EDUVAULT - GLOBAL SUPABASE DATABASE CONFIGURATION
 // ==============================================================================
-// File ini memungkinkan aplikasi EduVault terhubung otomatis ke database
-// Supabase Cloud yang sama di SEMUA browser, komputer, laptop, dan HP tanpa
-// perlu mengatur ulang koneksi satu per satu di setiap perangkat!
-//
-// CARA PENGGUNAAN:
-// 1. Masukkan URL Project Supabase Anda pada properti `url`
-// 2. Masukkan Anon Public Key Supabase Anda pada properti `anonKey`
-// 3. Simpan file ini dan lakukan git push (atau deploy ke Vercel).
+// Konfigurasi Terpusat Otomatis:
+// Semua browser, komputer, laptop, dan HP langsung terhubung ke database
+// Supabase Cloud yang sama secara instan tanpa perlu pengaturan manual lagi!
 // ==============================================================================
 
 window.EDUVAULT_DEFAULT_CONFIG = {
-    // Contoh: "https://xxxxxxxxxxxxxxxxxxxx.supabase.co"
-    url: "",
-
-    // Kunci panjang publik Supabase yang diawali dengan "eyJhbGciOi..."
-    anonKey: ""
+    url: "https://lfvqpddaprwgnqtcxywg.supabase.co",
+    anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmdnFwZGRhcHJ3Z25xdGN4eXdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3MjQ4MzAsImV4cCI6MjEwNjMwMDgzMH0.KoxR7a6gOhNGtM78KirTyzJqHqpfLDHpki3zcKD-rAc"
 };
