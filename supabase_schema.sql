@@ -6,7 +6,7 @@
 -- 1. Buka Dashboard Supabase Anda (https://supabase.com/dashboard)
 -- 2. Pilih project Anda, lalu buka menu "SQL Editor" di bilah navigasi kiri.
 -- 3. Buat "New Query", salin seluruh isi file ini, lalu klik tombol "RUN".
--- 4. Semua tabel, relasi, index, kebijakan RLS, dan data awal akan langsung siap!
+-- 4. Semua tabel, relasi, index, dan kebijakan RLS akan langsung siap (bersih tanpa data dummy)!
 -- ==============================================================================
 
 -- 1. TABEL PENGGUNA SISTEM (USERS & ADMIN)
@@ -127,45 +127,6 @@ BEGIN
 END $$;
 
 -- ==============================================================================
--- DATA AWAL (SEED DEMO DATA)
+-- SKEMA DATABASE SIAP (BERSIH TANPA DATA DUMMY)
+-- Anda dapat mulai mengisi data langsung melalui antarmuka web EduVault!
 -- ==============================================================================
-INSERT INTO public.app_users (id, name, username, password, role)
-VALUES 
-    ('usr_1', 'Administrator Sekolah', 'admin', 'admin123', 'Admin'),
-    ('usr_2', 'Petugas Tabungan & Parkir', 'petugas', 'petugas123', 'Petugas')
-ON CONFLICT (username) DO NOTHING;
-
-INSERT INTO public.students (id, nis, name, jk, class, plat, balance)
-VALUES 
-    ('std_1', '2026001', 'Ahmad Rizky Pratama', 'L', 'X RPL 1', 'B 4123 TZX', 250000),
-    ('std_2', '2026002', 'Siti Aisyah Rahma', 'P', 'X RPL 1', 'B 6890 KLR', 450000),
-    ('std_3', '2026003', 'Budi Santoso', 'L', 'XI TKJ 2', 'D 1289 VBC', 120000),
-    ('std_4', '2026004', 'Dewi Lestari', 'P', 'XI OTKP 1', '', 320000),
-    ('std_5', '2026005', 'Muhammad Fadhil', 'L', 'XII AKL 1', 'B 3011 PLM', 180000),
-    ('std_6', '2026006', 'Putri Amanda', 'P', 'X RPL 2', 'B 5542 NTY', 210000),
-    ('std_7', '2026007', 'Dimas Arya Wijaya', 'L', 'XI TKJ 1', 'B 3899 QWE', 95000),
-    ('std_8', '2026008', 'Nabila Zahra', 'P', 'XII AKL 2', '', 150000)
-ON CONFLICT (nis) DO NOTHING;
-
-INSERT INTO public.savings_transactions (id, student_nis, student_name, type, amount, date, note)
-VALUES 
-    ('tx_1', '2026001', 'Ahmad Rizky Pratama', 'SETOR', 200000, CURRENT_DATE - INTERVAL '4 days', 'Setoran awal semester'),
-    ('tx_2', '2026001', 'Ahmad Rizky Pratama', 'SETOR', 50000, CURRENT_DATE - INTERVAL '2 days', 'Tabungan mingguan'),
-    ('tx_3', '2026002', 'Siti Aisyah Rahma', 'SETOR', 500000, CURRENT_DATE - INTERVAL '3 days', 'Setoran bulanan'),
-    ('tx_4', '2026002', 'Siti Aisyah Rahma', 'TARIK', 50000, CURRENT_DATE - INTERVAL '1 days', 'Pembelian buku modul'),
-    ('tx_5', '2026003', 'Budi Santoso', 'SETOR', 120000, CURRENT_DATE - INTERVAL '5 days', 'Setoran kas mandiri'),
-    ('tx_6', '2026004', 'Dewi Lestari', 'SETOR', 320000, CURRENT_DATE - INTERVAL '3 days', 'Tabungan qurban & perlengkapan'),
-    ('tx_7', '2026005', 'Muhammad Fadhil', 'SETOR', 180000, CURRENT_DATE - INTERVAL '2 days', 'Setoran tabungan'),
-    ('tx_8', '2026006', 'Putri Amanda', 'SETOR', 210000, CURRENT_DATE - INTERVAL '1 days', 'Setoran tabungan kelas'),
-    ('tx_9', '2026007', 'Dimas Arya Wijaya', 'SETOR', 95000, CURRENT_DATE, 'Setoran harian'),
-    ('tx_10', '2026008', 'Nabila Zahra', 'SETOR', 150000, CURRENT_DATE, 'Setoran persiapan kelulusan')
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO public.parking_logs (id, date, amount, expense, note)
-VALUES 
-    ('prk_1', CURRENT_DATE - INTERVAL '4 days', 85000, 15000, 'Parkir motor 42 unit, cetak karcis'),
-    ('prk_2', CURRENT_DATE - INTERVAL '3 days', 95000, 20000, 'Parkir motor 47 unit & konsumsi petugas'),
-    ('prk_3', CURRENT_DATE - INTERVAL '2 days', 78000, 10000, 'Parkir motor 39 unit'),
-    ('prk_4', CURRENT_DATE - INTERVAL '1 days', 92000, 15000, 'Parkir motor 46 unit & perbaikan tali antrian'),
-    ('prk_5', CURRENT_DATE, 110000, 25000, 'Parkir motor & mobil tamu rapat komite')
-ON CONFLICT (id) DO NOTHING;
