@@ -375,53 +375,102 @@
 
         /* Print Media Styling for Official Reports */
         @media print {
-            html, body {
-                background: #ffffff !important;
-                color: #0f172a !important;
-                font-size: 11pt !important;
-                margin: 0 !important;
-                padding: 0 !important;
+            /* =====================================================
+               RESET SEMUA CONTAINER AGAR TIDAK ADA YANG TERPOTONG
+            ===================================================== */
+            html {
                 height: auto !important;
                 overflow: visible !important;
             }
-            body * {
-                visibility: hidden;
+            html, body {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                font-size: 10pt !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                height: auto !important;
+                min-height: 0 !important;
+                overflow: visible !important;
+                display: block !important;
             }
-            .no-print, header, aside, #loginOverlay, #confirmActionModal, #supabaseModal, #userModal, #studentModal, #excelPreviewModal, #sqlGuideModal, .toast-container {
+            /* Sembunyikan semua konten dulu */
+            body * { visibility: hidden !important; }
+
+            /* Sembunyikan elemen UI */
+            .no-print, header, aside,
+            #loginOverlay, #confirmActionModal, #supabaseModal,
+            #userModal, #studentModal, #excelPreviewModal,
+            #sqlGuideModal, .toast-container {
                 display: none !important;
             }
-            #printableReportArea, #printableReportArea * {
-                visibility: visible;
+
+            /* Reset semua wrapper container agar tidak ada clipping */
+            body > div, main, .flex-1, [class*="overflow"],
+            [class*="h-screen"], [class*="min-h-screen"] {
+                height: auto !important;
+                min-height: 0 !important;
+                max-height: none !important;
+                overflow: visible !important;
+                display: block !important;
+                position: static !important;
             }
+
+            /* Tampilkan area laporan */
             #printableReportArea {
+                visibility: visible !important;
+                display: block !important;
                 position: absolute !important;
                 left: 0 !important;
                 top: 0 !important;
                 width: 100% !important;
+                height: auto !important;
                 margin: 0 !important;
-                padding: 20px !important;
-                background: transparent !important;
+                padding: 16px !important;
+                background: #ffffff !important;
                 border: none !important;
                 box-shadow: none !important;
+                overflow: visible !important;
             }
+            #printableReportArea * {
+                visibility: visible !important;
+                overflow: visible !important;
+            }
+            /* Sembunyikan elemen no-print di dalam report area */
+            #printableReportArea .no-print {
+                display: none !important;
+            }
+
+            /* Tabel: izinkan multi-halaman */
             table {
                 width: 100% !important;
                 border-collapse: collapse !important;
-                page-break-inside: auto;
+                page-break-inside: auto !important;
+                table-layout: fixed !important;
             }
             tr {
-                page-break-inside: avoid;
-                page-break-after: auto;
+                page-break-inside: avoid !important;
+                page-break-after: auto !important;
             }
             th, td {
-                border: 1px solid #cbd5e1 !important;
-                padding: 6px 8px !important;
+                border: 1px solid #94a3b8 !important;
+                padding: 4px 6px !important;
+                font-size: 8.5pt !important;
+                word-break: break-word !important;
             }
             thead {
-                display: table-header-group;
+                display: table-header-group !important;
             }
             tfoot {
-                display: table-footer-group;
+                display: table-footer-group !important;
+            }
+
+            /* Pagination: sembunyi saat print */
+            #reportPagination { display: none !important; }
+
+            /* Page size & margin */
+            @page {
+                size: A4 landscape;
+                margin: 10mm 12mm;
             }
         }
     </style>
@@ -2494,22 +2543,10 @@
             const classMap = {};
             (students || []).forEach(s => {
                 const cls = (s.class || 'Tanpa Kelas').trim();
-                if (!classMap[cls]) classMap[cls] = { name: cls, count: 0, totalBalance: 0, totalDeposit: 0 };
+                if (!classMap[cls]) classMap[cls] = { name: cls, count: 0, totalBalance: 0 };
                 classMap[cls].count++;
-                // Compute balance from transactions — match by studentNis, type SETOR/TARIK
-                const txs = (savingsTransactions || []).filter(t =>
-                    (t.studentNis && t.studentNis === s.nis) ||
-                    (t.student_nis && t.student_nis === s.nis)
-                );
-                let bal = 0, dep = 0;
-                txs.forEach(t => {
-                    const amt = Number(t.amount || 0);
-                    const ttype = (t.type || '').toUpperCase();
-                    if (ttype === 'SETOR' || ttype === 'DEPOSIT') { bal += amt; dep += amt; }
-                    else { bal -= amt; }
-                });
-                classMap[cls].totalBalance += bal;
-                classMap[cls].totalDeposit += dep;
+                // student.balance sudah dihitung oleh recalculateStudentBalances()
+                classMap[cls].totalBalance += Number(s.balance || 0);
             });
 
             const classes = Object.values(classMap).sort((a, b) => a.name.localeCompare(b.name));
@@ -2591,7 +2628,7 @@
                 (s.class || 'Tanpa Kelas').trim() === className
             );
             return studentsInClass.map(s => {
-                // Match by studentNis (local) or student_nis (Supabase mapping)
+                // Match transaksi by studentNis (local) atau student_nis (Supabase)
                 const txs = (savingsTransactions || []).filter(t =>
                     (t.studentNis && t.studentNis === s.nis) ||
                     (t.student_nis && t.student_nis === s.nis)
@@ -2603,10 +2640,13 @@
                     if (ttype === 'SETOR' || ttype === 'DEPOSIT') { totalDeposit += amt; depositCount++; }
                     else { totalWithdraw += amt; withdrawCount++; }
                 });
+                // Gunakan student.balance yang sudah dihitung recalculateStudentBalances()
+                // sebagai fallback jika transaksi kosong (data lama)
+                const computedBalance = totalDeposit - totalWithdraw;
+                const balance = txs.length > 0 ? computedBalance : Number(s.balance || 0);
                 return {
                     id: s.id, nis: s.nis || '-', name: s.name || '-',
-                    totalDeposit, totalWithdraw,
-                    balance: totalDeposit - totalWithdraw,
+                    totalDeposit, totalWithdraw, balance,
                     depositCount, withdrawCount,
                     txCount: txs.length
                 };
@@ -2694,20 +2734,80 @@
             let sumDep = 0, sumWd = 0, sumBal = 0;
             const rows = data.map((r, i) => {
                 sumDep += r.totalDeposit; sumWd += r.totalWithdraw; sumBal += r.balance;
-                return `<tr><td>${i+1}</td><td>${r.nis}</td><td>${r.name}</td><td>${r.depositCount}x</td><td>${r.withdrawCount}x</td><td>${formatRp(r.totalDeposit)}</td><td>${formatRp(r.totalWithdraw)}</td><td><b>${formatRp(r.balance)}</b></td></tr>`;
+                const balStyle = r.balance >= 0 ? 'color:#15803d;font-weight:700' : 'color:#dc2626;font-weight:700';
+                return `<tr>
+                    <td>${i+1}</td><td>${r.nis}</td><td>${r.name}</td>
+                    <td style="text-align:center">${r.depositCount}x</td>
+                    <td style="text-align:center">${r.withdrawCount}x</td>
+                    <td style="text-align:right;color:#15803d">${formatRp(r.totalDeposit)}</td>
+                    <td style="text-align:right;color:#dc2626">${formatRp(r.totalWithdraw)}</td>
+                    <td style="text-align:right;${balStyle}">${formatRp(r.balance)}</td>
+                </tr>`;
             }).join('');
-            const html = `<!DOCTYPE html><html><head><title>Rekap Kelas ${currentClassRecap}</title>
-            <style>body{font-family:sans-serif;font-size:11pt}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:5px 8px}thead{background:#e2e8f0}tfoot{background:#f1f5f9;font-weight:bold}</style></head>
-            <body><h2 style="text-align:center">REKAP TABUNGAN KELAS ${currentClassRecap}</h2>
-            <p style="text-align:center;font-size:10pt;color:#666">Dicetak: ${new Date().toLocaleDateString('id-ID')}</p>
-            <table><thead><tr><th>#</th><th>NIS</th><th>Nama</th><th>Setor</th><th>Tarik</th><th>Total Setor</th><th>Total Tarik</th><th>Saldo</th></tr></thead>
-            <tbody>${rows}</tbody>
-            <tfoot><tr><td colspan="5">TOTAL ${data.length} Siswa</td><td>${formatRp(sumDep)}</td><td>${formatRp(sumWd)}</td><td>${formatRp(sumBal)}</td></tr></tfoot></table>
-            </body></html>`;
-            const w = window.open('', '_blank');
-            w.document.write(html);
-            w.document.close();
-            w.print();
+
+            const printDate = new Date().toLocaleDateString('id-ID', { dateStyle: 'full' });
+            const officer = currentUser?.name || 'Admin';
+
+            const html = `<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Rekap Tabungan Kelas ${currentClassRecap}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; font-size: 9pt; color: #0f172a; }
+  h1 { font-size: 13pt; font-weight: 900; text-align: center; text-transform: uppercase; }
+  h2 { font-size: 10pt; font-weight: 700; text-align: center; color: #475569; margin-top: 2px; }
+  .meta { display: flex; justify-content: space-between; font-size: 8pt; color: #64748b;
+          margin: 10px 0; padding-bottom: 8px; border-bottom: 1px solid #cbd5e1; }
+  .title-block { text-align: center; padding-bottom: 10px; border-bottom: 2px solid #0f172a; margin-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; page-break-inside: auto; margin-top: 8px; }
+  thead { display: table-header-group; }
+  tfoot { display: table-footer-group; }
+  tr { page-break-inside: avoid; }
+  th { background: #e2e8f0; color: #334155; font-size: 7.5pt; font-weight: 700;
+       text-transform: uppercase; padding: 5px 6px; border: 1px solid #94a3b8; text-align: left; }
+  td { border: 1px solid #cbd5e1; padding: 4px 6px; font-size: 8.5pt; }
+  tr:nth-child(even) td { background: #f8fafc; }
+  tfoot td { background: #f1f5f9 !important; font-weight: 800; border-top: 2px solid #475569; }
+  @page { size: A4 landscape; margin: 10mm 12mm; }
+  @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+</style>
+</head>
+<body>
+  <div class="title-block">
+    <h1>REKAP TABUNGAN KELAS ${currentClassRecap}</h1>
+    <h2>EduVault - Sistem Tabungan Siswa</h2>
+  </div>
+  <div class="meta">
+    <span>Kelas: ${currentClassRecap} &nbsp;|&nbsp; Jumlah Siswa: ${data.length}</span>
+    <span>Dicetak: ${printDate} &nbsp;|&nbsp; Petugas: ${officer}</span>
+  </div>
+  <table>
+    <thead><tr>
+      <th style="width:30px">#</th><th>NIS</th><th>Nama Siswa</th>
+      <th style="text-align:center">Setor</th><th style="text-align:center">Tarik</th>
+      <th style="text-align:right">Total Setor</th><th style="text-align:right">Total Tarik</th>
+      <th style="text-align:right">Saldo</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+    <tfoot><tr>
+      <td colspan="5" style="font-size:8.5pt">TOTAL &mdash; ${data.length} Siswa</td>
+      <td style="text-align:right;color:#15803d">${formatRp(sumDep)}</td>
+      <td style="text-align:right;color:#dc2626">${formatRp(sumWd)}</td>
+      <td style="text-align:right;color:#1e40af">${formatRp(sumBal)}</td>
+    </tr></tfoot>
+  </table>
+</body>
+</html>`;
+
+            const pw = window.open('', '_blank', 'width=1000,height=700');
+            if (!pw) { alert('Popup diblokir browser. Izinkan popup untuk mencetak.'); return; }
+            pw.document.write(html);
+            pw.document.close();
+            // Tunggu onload sebelum print agar semua render selesai
+            pw.onload = () => { pw.focus(); pw.print(); pw.onafterprint = () => pw.close(); };
+            setTimeout(() => { if (pw && !pw.closed) { pw.focus(); pw.print(); } }, 800);
         }
 
 
@@ -4860,18 +4960,83 @@
 
         // Print Report Action with unpaginated full view
         function printReport() {
+            // Render semua data (tanpa paginasi) lalu cetak via dedicated print window
             applyReportFilter(true);
-            safeLucide();
-
-            const restorePaginatedView = () => {
-                window.removeEventListener('afterprint', restorePaginatedView);
-                applyReportFilter(false);
-            };
-            window.addEventListener('afterprint', restorePaginatedView);
 
             setTimeout(() => {
-                window.print();
-            }, 300);
+                const area = document.getElementById('printableReportArea');
+                if (!area) { window.print(); return; }
+
+                const schoolTitle = document.getElementById('repSchoolName')?.innerText || 'LAPORAN TABUNGAN SISWA DAN PARKIR';
+                const subTitle   = document.getElementById('repSubTitle')?.innerText || '';
+                const dateInfo   = document.getElementById('repDateRangeInfo')?.innerText || '';
+                const printDate  = document.getElementById('repPrintDate')?.innerText || new Date().toLocaleDateString('id-ID');
+                const officer    = document.getElementById('repOfficerName')?.innerText || (currentUser?.name || 'Admin');
+
+                // Ambil isi tabel (semua baris sudah dirender isForPrint=true)
+                const thead = document.getElementById('reportTableHeader')?.innerHTML || '';
+                const tbody = document.getElementById('reportTableBody')?.innerHTML || '';
+                const tfoot = document.getElementById('reportTableFooter')?.innerHTML || '';
+                const metrics = document.getElementById('reportSummaryMetrics')?.innerHTML || '';
+
+                const html = `<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>${subTitle} - EduVault</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Arial', sans-serif; font-size: 9pt; color: #0f172a; background: #fff; }
+  .report-header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 10px; margin-bottom: 12px; }
+  .report-header h1 { font-size: 13pt; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; }
+  .report-header h2 { font-size: 10pt; font-weight: 700; margin-top: 3px; text-transform: uppercase; }
+  .report-meta { display: flex; justify-content: space-between; font-size: 8pt; color: #475569; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #cbd5e1; }
+  .metrics { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+  .metric-card { flex: 1; min-width: 120px; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 10px; background: #f8fafc; }
+  .metric-card .label { font-size: 7.5pt; color: #64748b; font-weight: 600; }
+  .metric-card .value { font-size: 10pt; font-weight: 800; color: #1e293b; margin-top: 2px; }
+  table { width: 100%; border-collapse: collapse; page-break-inside: auto; }
+  thead { display: table-header-group; }
+  tfoot { display: table-footer-group; }
+  tr { page-break-inside: avoid; page-break-after: auto; }
+  th { background: #e2e8f0 !important; color: #334155 !important; font-weight: 700; font-size: 7.5pt; text-transform: uppercase; padding: 5px 6px; border: 1px solid #94a3b8; text-align: left; }
+  td { border: 1px solid #cbd5e1; padding: 4px 6px; font-size: 8.5pt; vertical-align: top; }
+  tfoot td { background: #f1f5f9 !important; font-weight: 700; border-top: 2px solid #64748b; }
+  tr:nth-child(even) td { background: #f8fafc; }
+  .badge-green { color: #15803d; font-weight: 700; }
+  .badge-red { color: #dc2626; font-weight: 700; }
+  @page { size: A4 landscape; margin: 10mm 12mm; }
+  @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+</style>
+</head>
+<body>
+  <div class="report-header">
+    <h1>${schoolTitle}</h1>
+    <h2>${subTitle}</h2>
+  </div>
+  <div class="report-meta">
+    <span>${dateInfo}</span>
+    <span>Dicetak: ${printDate} &nbsp;|&nbsp; Petugas: ${officer}</span>
+  </div>
+  <div class="metrics">${metrics}</div>
+  <table>
+    <thead>${thead}</thead>
+    <tbody>${tbody}</tbody>
+    <tfoot>${tfoot}</tfoot>
+  </table>
+</body>
+</html>`;
+
+                const pw = window.open('', '_blank', 'width=1000,height=700');
+                if (!pw) { alert('Popup diblokir browser. Izinkan popup untuk mencetak.'); return; }
+                pw.document.write(html);
+                pw.document.close();
+                pw.onload = () => { pw.focus(); pw.print(); pw.onafterprint = () => pw.close(); };
+                setTimeout(() => { if (!pw.closed) { pw.focus(); pw.print(); } }, 800);
+
+                // Kembalikan tampilan normal (dengan paginasi)
+                setTimeout(() => applyReportFilter(false), 500);
+            }, 400);
         }
         // ==========================================
         // 10. PENGATURAN SISTEM (USER & DATABASE)
