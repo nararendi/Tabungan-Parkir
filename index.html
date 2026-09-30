@@ -295,33 +295,12 @@
                 <span>Pengaturan Sistem</span>
             </button>
 
-            <!-- Supabase Cloud Hub Action in Nav -->
-            <div class="pt-4 mt-4 border-t border-slate-800/80">
-                <div class="px-2 pb-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Database Cloud</div>
-                <button onclick="showSection('settings'); switchSettingsTab('database');" class="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 text-slate-300 hover:text-white transition-all text-xs font-semibold group cursor-pointer">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-                            <i data-lucide="database" class="w-3.5 h-3.5"></i>
-                        </div>
-                        <span>Koneksi Supabase</span>
-                    </div>
-                    <span id="sideDbBadge" class="text-[10px] px-1.5 py-0.5 rounded font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">Lokal</span>
-                </button>
-            </div>
         </nav>
 
         <!-- Sidebar Footer Status -->
-        <div class="p-4 border-t border-slate-800/80 text-xs text-slate-400 space-y-2.5 bg-slate-950/40">
-            <div class="flex items-center gap-2 cursor-pointer hover:text-slate-200 transition-colors" onclick="openSupabaseModal()">
-                <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" id="statusDot"></span>
-                <span id="dbStatusText" class="font-semibold text-amber-300 text-[11px] truncate">Mode Penyimpanan Lokal</span>
-            </div>
-            <div class="flex items-center justify-between text-[10px] text-slate-500">
-                <span>EduVault v4.2 PRO</span>
-                <button onclick="openSqlGuideModal()" class="text-brand-400 hover:underline flex items-center gap-1 font-semibold">
-                    <i data-lucide="code" class="w-3 h-3"></i> SQL Supabase
-                </button>
-            </div>
+        <div class="p-4 border-t border-slate-800/80 text-[11px] text-slate-500 flex items-center justify-between bg-slate-950/40">
+            <span class="font-medium">EduVault v4.2 PRO</span>
+            <span class="text-[10px] font-bold text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">Cloud Ready</span>
         </div>
     </aside>
 
@@ -346,20 +325,6 @@
 
             <!-- Topbar Actions -->
             <div class="flex items-center gap-2 sm:gap-3">
-                <!-- Supabase Cloud Indicator / Trigger -->
-                <button onclick="openSupabaseModal()" id="topCloudStatusBtn" class="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-xl border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 transition-all shadow-sm" title="Buka Pengaturan Supabase">
-                    <i data-lucide="cloud" class="w-3.5 h-3.5"></i>
-                    <span id="topCloudStatusText" class="hidden sm:inline">Hubungkan Supabase</span>
-                </button>
-
-                <!-- Sync Button -->
-                <button onclick="syncData(false)" class="flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-brand-600 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-xl transition-all" title="Segarkan & Sinkronkan Data">
-                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5" id="headerSyncIcon"></i>
-                    <span class="hidden sm:inline">Refresh</span>
-                </button>
-
-                <div class="h-4 w-px bg-slate-200"></div>
-
                 <!-- User Profile & Logout -->
                 <div class="flex items-center gap-2 sm:gap-3">
                     <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-600 text-white font-bold flex items-center justify-center text-xs shadow-md shadow-brand-500/20" id="userAvatar">
@@ -369,7 +334,7 @@
                         <p class="text-xs font-bold text-slate-900 leading-none" id="topUserName">Administrator</p>
                         <p class="text-[10px] text-slate-500 font-medium mt-0.5" id="topUserRole">Admin</p>
                     </div>
-                    <button onclick="handleLogout()" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all" title="Keluar / Logout">
+                    <button onclick="handleLogout()" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all cursor-pointer" title="Keluar / Logout">
                         <i data-lucide="log-out" class="w-4 h-4"></i>
                     </button>
                 </div>
@@ -936,7 +901,7 @@
                         </button>
                         <button type="button" id="tabBtnDatabase" onclick="switchSettingsTab('database')" class="px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-2 cursor-pointer">
                             <i data-lucide="database" class="w-3.5 h-3.5 text-emerald-600"></i>
-                            <span>Koneksi Database</span>
+                            <span>Database Cloud (Supabase)</span>
                         </button>
                     </div>
                 </div>
@@ -3975,14 +3940,10 @@
         function onSearchSavingsChange() { currentPageSavings = 1; renderSavings(); }
         function onSearchStudentsChange() { currentPageStudents = 1; renderStudents(); }
 
-        // Supabase Modal Handlers
+        // Supabase Modal Handlers (Redirected to unified Settings tab)
         function openSupabaseModal() {
-            const cfg = getSupabaseConfig();
-            document.getElementById('sbUrl').value = cfg.url || '';
-            document.getElementById('sbKey').value = cfg.anonKey || '';
-            updateModalStatusCard();
-            document.getElementById('supabaseModal').classList.remove('hidden');
-            safeLucide();
+            showSection('settings');
+            switchSettingsTab('database');
         }
 
         function closeSupabaseModal() {
