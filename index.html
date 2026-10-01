@@ -1206,71 +1206,106 @@
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
                             <h3 class="text-sm font-extrabold text-slate-900">Rekap Tabungan / Kelas</h3>
-                            <p class="text-[11px] text-slate-400 font-medium mt-0.5">Pilih kelas untuk melihat rincian tabungan seluruh siswa di kelas tersebut</p>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button onclick="exportClassRecapExcel()" id="btnExportClassRecap" class="hidden px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-all flex items-center gap-1.5 shadow-md shadow-emerald-600/20">
-                                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
-                                <span>Ekspor Excel</span>
-                            </button>
-                            <button onclick="printClassRecap()" id="btnPrintClassRecap" class="hidden px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-all flex items-center gap-1.5 shadow-md">
-                                <i data-lucide="printer" class="w-4 h-4"></i>
-                                <span>Cetak</span>
-                            </button>
+                            <p class="text-[11px] text-slate-400 font-medium mt-0.5">Daftar rekapitulasi tabungan siswa per rombongan belajar / kelas</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Class Picker Grid -->
-                <div id="classPickerGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                    <!-- Dynamic class cards injected by JS -->
+                <!-- Class List Table View -->
+                <div id="classPickerTableWrapper" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                    <div class="p-4 bg-slate-50/60 border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <div class="relative w-full sm:w-72">
+                            <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5"></i>
+                            <input type="text" id="searchClassInput" oninput="filterClassListTable()" placeholder="Cari nama kelas..." class="w-full text-xs pl-8 pr-3 py-1.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 font-medium outline-none bg-white">
+                        </div>
+                        <span id="classCountSummary" class="text-xs font-bold text-slate-500">Total: 0 Kelas</span>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50/80 text-slate-500 uppercase font-bold text-[10px] tracking-wider border-b border-slate-100">
+                                <tr>
+                                    <th class="p-3.5 pl-5 w-12 text-center">No</th>
+                                    <th class="p-3.5">Nama Kelas</th>
+                                    <th class="p-3.5 text-center">Total Siswa</th>
+                                    <th class="p-3.5 text-center">Siswa Menabung</th>
+                                    <th class="p-3.5 text-right">Total Tabungan Kelas</th>
+                                    <th class="p-3.5 text-center pr-5 w-44">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="classListTableBody" class="divide-y divide-slate-100 font-medium">
+                                <tr><td colspan="6" class="p-5 text-center text-slate-400">Memuat data kelas...</td></tr>
+                            </tbody>
+                            <tfoot id="classListTableFooter" class="bg-slate-50 font-extrabold border-t border-slate-200 text-xs">
+                            </tfoot>
+                        </table>
+                    </div>
                 </div>
 
-                <!-- Class Detail Table -->
+                <!-- Class Detail Table (Muncul saat kelas diklik) -->
                 <div id="classRecapDetail" class="hidden bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
                     <!-- Detail Header -->
-                    <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="p-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div class="flex items-center gap-3">
-                            <button onclick="backToClassPicker()" class="p-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 transition-all">
+                            <button onclick="backToClassPicker()" class="p-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 transition-all cursor-pointer" title="Kembali ke Daftar Kelas">
                                 <i data-lucide="arrow-left" class="w-4 h-4"></i>
                             </button>
                             <div>
-                                <h4 class="text-sm font-extrabold text-slate-900" id="classRecapTitle">Kelas -</h4>
-                                <p class="text-[11px] text-slate-400 font-medium" id="classRecapSubtitle">0 siswa</p>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="text-sm font-extrabold text-slate-900" id="classRecapTitle">Kelas -</h4>
+                                    <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold" id="classRecapSubtitle">0 Siswa Menabung</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400 font-medium mt-0.5">Menampilkan siswa yang memiliki tabungan di kelas ini</p>
                             </div>
                         </div>
-                        <div class="flex flex-wrap gap-2" id="classRecapSummaryBadges"></div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <button onclick="exportClassRecapExcel()" id="btnExportClassRecap" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-all flex items-center gap-1.5 shadow-md shadow-emerald-600/20 cursor-pointer">
+                                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                                <span>Ekspor Excel</span>
+                            </button>
+                            <button onclick="printClassRecap()" id="btnPrintClassRecap" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs transition-all flex items-center gap-1.5 shadow-md shadow-brand-600/20 cursor-pointer">
+                                <i data-lucide="printer" class="w-4 h-4"></i>
+                                <span>Cetak PDF</span>
+                            </button>
+                        </div>
                     </div>
 
+                    <!-- Summary Badges -->
+                    <div class="px-5 py-3 bg-slate-50/70 border-b border-slate-100 flex flex-wrap gap-2.5" id="classRecapSummaryBadges"></div>
+
                     <!-- Filter row -->
-                    <div class="px-5 py-3 border-b border-slate-100 bg-slate-50/50 flex flex-wrap items-center gap-3">
-                        <input type="text" id="classRecapSearch" oninput="filterClassRecapTable()" placeholder="Cari nama / NIS..." class="text-xs px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 outline-none bg-white font-medium w-48">
-                        <select id="classRecapSortBy" onchange="filterClassRecapTable()" class="text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white font-semibold outline-none">
-                            <option value="name">Urutkan: Nama A-Z</option>
-                            <option value="balance_desc">Saldo Tertinggi</option>
-                            <option value="balance_asc">Saldo Terendah</option>
-                            <option value="tx_desc">Transaksi Terbanyak</option>
-                        </select>
+                    <div class="px-5 py-3 border-b border-slate-100 bg-white flex flex-wrap items-center justify-between gap-3">
+                        <div class="relative w-full sm:w-64">
+                            <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5"></i>
+                            <input type="text" id="classRecapSearch" oninput="filterClassRecapTable()" placeholder="Cari nama atau NIS siswa..." class="w-full text-xs pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 outline-none bg-slate-50/50 font-medium">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <select id="classRecapSortBy" onchange="filterClassRecapTable()" class="text-xs px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50/50 font-semibold outline-none cursor-pointer">
+                                <option value="name">Urutkan: Nama A-Z</option>
+                                <option value="balance_desc">Saldo Tertinggi</option>
+                                <option value="balance_asc">Saldo Terendah</option>
+                                <option value="tx_desc">Transaksi Terbanyak</option>
+                            </select>
+                        </div>
                     </div>
 
                     <!-- Table -->
                     <div class="overflow-x-auto">
                         <table class="w-full text-xs text-left">
-                            <thead class="bg-slate-100 text-slate-600 font-extrabold uppercase text-[10px] tracking-wider">
+                            <thead class="bg-slate-50/80 text-slate-500 font-bold uppercase text-[10px] tracking-wider border-b border-slate-100">
                                 <tr>
-                                    <th class="px-4 py-3 w-8">#</th>
-                                    <th class="px-4 py-3">NIS</th>
-                                    <th class="px-4 py-3">Nama Siswa</th>
-                                    <th class="px-4 py-3 text-center">Setor</th>
-                                    <th class="px-4 py-3 text-center">Tarik</th>
-                                    <th class="px-4 py-3 text-right">Total Setor</th>
-                                    <th class="px-4 py-3 text-right">Total Tarik</th>
-                                    <th class="px-4 py-3 text-right text-brand-700">Saldo</th>
+                                    <th class="p-3.5 pl-5 w-12 text-center">No</th>
+                                    <th class="p-3.5">NIS</th>
+                                    <th class="p-3.5">Nama Siswa</th>
+                                    <th class="p-3.5 text-center">Frekuensi Mutasi</th>
+                                    <th class="p-3.5 text-right">Total Setoran</th>
+                                    <th class="p-3.5 text-right">Total Penarikan</th>
+                                    <th class="p-3.5 text-right pr-5 font-black text-brand-700">Total Tabungan Siswa</th>
                                 </tr>
                             </thead>
                             <tbody id="classRecapTableBody" class="divide-y divide-slate-100">
                             </tbody>
-                            <tfoot id="classRecapTableFooter" class="bg-slate-100 font-extrabold border-t-2 border-slate-300 text-xs">
+                            <tfoot id="classRecapTableFooter" class="bg-slate-50 font-extrabold border-t-2 border-slate-200 text-xs">
                             </tfoot>
                         </table>
                     </div>
@@ -2528,64 +2563,122 @@
         // ==========================================
         let currentClassRecap = null; // currently selected class name
         let classRecapData = [];      // computed data for current class
+        let allClassRecapList = [];   // list of all classes aggregated
 
         function renderClassPickerGrid() {
-            const grid = document.getElementById('classPickerGrid');
+            const wrapper = document.getElementById('classPickerTableWrapper');
             const detail = document.getElementById('classRecapDetail');
-            if (!grid) return;
+            const tbody = document.getElementById('classListTableBody');
+            if (!tbody) return;
 
-            // Hide detail, show grid
+            // Pastikan saldo siswa terkini sudah dikalkulasi
+            recalculateStudentBalances();
+
+            // Show table wrapper, hide detail
             detail && detail.classList.add('hidden');
-            document.getElementById('btnExportClassRecap') && document.getElementById('btnExportClassRecap').classList.add('hidden');
-            document.getElementById('btnPrintClassRecap') && document.getElementById('btnPrintClassRecap').classList.add('hidden');
+            wrapper && wrapper.classList.remove('hidden');
 
-            // Get all unique classes from students
             const classMap = {};
             (students || []).forEach(s => {
                 const cls = (s.class || 'Tanpa Kelas').trim();
-                if (!classMap[cls]) classMap[cls] = { name: cls, count: 0, totalBalance: 0 };
+                if (!classMap[cls]) {
+                    classMap[cls] = { name: cls, count: 0, saversCount: 0, totalBalance: 0 };
+                }
                 classMap[cls].count++;
-                // student.balance sudah dihitung oleh recalculateStudentBalances()
-                classMap[cls].totalBalance += Number(s.balance || 0);
+                const bal = Number(s.balance || 0);
+                if (bal > 0) {
+                    classMap[cls].saversCount++;
+                }
+                classMap[cls].totalBalance += bal;
             });
 
-            const classes = Object.values(classMap).sort((a, b) => a.name.localeCompare(b.name));
+            allClassRecapList = Object.values(classMap).sort((a, b) => 
+                a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
+            );
+
+            // Reset search input if exists
+            const searchInput = document.getElementById('searchClassInput');
+            if (searchInput) searchInput.value = '';
+
+            renderClassListRows(allClassRecapList);
+        }
+
+        function filterClassListTable() {
+            const q = (document.getElementById('searchClassInput')?.value || '').toLowerCase().trim();
+            const filtered = allClassRecapList.filter(c => c.name.toLowerCase().includes(q));
+            renderClassListRows(filtered);
+        }
+
+        function renderClassListRows(classes) {
+            const tbody = document.getElementById('classListTableBody');
+            const tfoot = document.getElementById('classListTableFooter');
+            const countSummary = document.getElementById('classCountSummary');
+            if (!tbody) return;
+
+            if (countSummary) {
+                countSummary.innerText = `Total: ${classes.length} Kelas`;
+            }
 
             if (classes.length === 0) {
-                grid.innerHTML = `<div class="col-span-full flex flex-col items-center justify-center py-16 text-slate-400">
-                    <i data-lucide="inbox" class="w-12 h-12 mb-3 opacity-40"></i>
-                    <p class="font-semibold text-sm">Belum ada data siswa</p>
-                    <p class="text-xs mt-1">Tambahkan siswa terlebih dahulu di menu Data Siswa</p>
-                </div>`;
-                safeLucide();
+                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400 font-semibold">Tidak ada kelas yang sesuai</td></tr>`;
+                if (tfoot) tfoot.innerHTML = '';
                 return;
             }
 
-            // Color palette for class cards
-            const colors = [
-                { bg: 'bg-indigo-50', border: 'border-indigo-200', icon: 'bg-indigo-500', text: 'text-indigo-700', badge: 'bg-indigo-100 text-indigo-700' },
-                { bg: 'bg-emerald-50', border: 'border-emerald-200', icon: 'bg-emerald-500', text: 'text-emerald-700', badge: 'bg-emerald-100 text-emerald-700' },
-                { bg: 'bg-violet-50',  border: 'border-violet-200',  icon: 'bg-violet-500',  text: 'text-violet-700',  badge: 'bg-violet-100  text-violet-700'  },
-                { bg: 'bg-amber-50',   border: 'border-amber-200',   icon: 'bg-amber-500',   text: 'text-amber-700',   badge: 'bg-amber-100   text-amber-700'   },
-                { bg: 'bg-rose-50',    border: 'border-rose-200',    icon: 'bg-rose-500',    text: 'text-rose-700',    badge: 'bg-rose-100    text-rose-700'    },
-                { bg: 'bg-cyan-50',    border: 'border-cyan-200',    icon: 'bg-cyan-500',    text: 'text-cyan-700',    badge: 'bg-cyan-100    text-cyan-700'    },
-            ];
+            let grandTotalStudents = 0;
+            let grandTotalSavers = 0;
+            let grandTotalBalance = 0;
 
-            grid.innerHTML = classes.map((cls, idx) => {
-                const c = colors[idx % colors.length];
-                return `<button onclick="openClassDetail('${cls.name.replace(/'/g, "\\'")}')"
-                    class="${c.bg} border ${c.border} rounded-2xl p-4 text-left hover:shadow-md transition-all group anim-fade-in-up" style="animation-delay:${idx * 0.05}s">
-                    <div class="flex items-start justify-between mb-3">
-                        <div class="w-10 h-10 rounded-xl ${c.icon} text-white flex items-center justify-center shadow-sm">
-                            <i data-lucide="users" class="w-5 h-5"></i>
+            tbody.innerHTML = classes.map((cls, idx) => {
+                grandTotalStudents += cls.count;
+                grandTotalSavers += cls.saversCount;
+                grandTotalBalance += cls.totalBalance;
+                const safeName = cls.name.replace(/'/g, "\\'");
+
+                return `
+                <tr class="hover:bg-slate-50/80 transition-colors cursor-pointer group" onclick="openClassDetail('${safeName}')">
+                    <td class="p-3.5 pl-5 text-center text-slate-400 font-semibold">${idx + 1}</td>
+                    <td class="p-3.5">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-2.5 h-2.5 rounded-full ${cls.saversCount > 0 ? 'bg-emerald-500 ring-4 ring-emerald-100' : 'bg-slate-300'}"></span>
+                            <span class="font-extrabold text-slate-900 text-sm group-hover:text-brand-600 transition-colors">${cls.name}</span>
                         </div>
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${c.badge}">${cls.count} Siswa</span>
-                    </div>
-                    <p class="font-extrabold text-slate-900 text-sm leading-tight">${cls.name}</p>
-                    <p class="text-[11px] ${c.text} font-bold mt-1">${formatRp(cls.totalBalance)}</p>
-                    <p class="text-[10px] text-slate-400 font-medium mt-0.5">Total Saldo Kelas</p>
-                </button>`;
+                    </td>
+                    <td class="p-3.5 text-center font-bold text-slate-700">${cls.count} Siswa</td>
+                    <td class="p-3.5 text-center">
+                        <span class="px-2.5 py-1 text-[11px] font-extrabold rounded-full ${cls.saversCount > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}">
+                            ${cls.saversCount} Siswa
+                        </span>
+                    </td>
+                    <td class="p-3.5 text-right font-black ${cls.totalBalance > 0 ? 'text-emerald-700' : 'text-slate-400'} text-sm">
+                        ${formatRp(cls.totalBalance)}
+                    </td>
+                    <td class="p-3.5 text-center pr-5" onclick="event.stopPropagation()">
+                        <div class="flex items-center justify-center gap-1.5">
+                            <button onclick="openClassDetail('${safeName}')" class="px-3 py-1.5 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold text-xs flex items-center gap-1 transition-all cursor-pointer" title="Lihat Siswa Menabung">
+                                <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                                <span>Lihat Siswa</span>
+                            </button>
+                            <button onclick="printClassRecap('${safeName}')" class="px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center gap-1 transition-all cursor-pointer" title="Cetak PDF Rekap Kelas ${cls.name}">
+                                <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                `;
             }).join('');
+
+            if (tfoot) {
+                tfoot.innerHTML = `
+                <tr>
+                    <td colspan="2" class="p-3.5 pl-5 font-extrabold text-slate-800">TOTAL SELURUH KELAS:</td>
+                    <td class="p-3.5 text-center font-bold text-slate-800">${grandTotalStudents} Siswa</td>
+                    <td class="p-3.5 text-center font-bold text-emerald-700">${grandTotalSavers} Siswa</td>
+                    <td class="p-3.5 text-right font-black text-emerald-700 text-sm">${formatRp(grandTotalBalance)}</td>
+                    <td></td>
+                </tr>
+                `;
+            }
 
             safeLucide();
         }
@@ -2595,23 +2688,35 @@
             classRecapData = buildClassRecapData(className);
 
             document.getElementById('classRecapTitle').textContent = 'Kelas ' + className;
-            document.getElementById('classRecapSubtitle').textContent = classRecapData.length + ' siswa';
+            document.getElementById('classRecapSubtitle').textContent = `${classRecapData.length} Siswa Menabung`;
 
-            // Summary badges
+            // Summary metrics
             const totalDeposit = classRecapData.reduce((s, r) => s + r.totalDeposit, 0);
             const totalWithdraw = classRecapData.reduce((s, r) => s + r.totalWithdraw, 0);
             const totalBalance = classRecapData.reduce((s, r) => s + r.balance, 0);
             document.getElementById('classRecapSummaryBadges').innerHTML = `
-                <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">Setor: ${formatRp(totalDeposit)}</span>
-                <span class="px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 text-[10px] font-bold">Tarik: ${formatRp(totalWithdraw)}</span>
-                <span class="px-2.5 py-1 rounded-full bg-brand-100 text-brand-800 text-[10px] font-bold">Saldo: ${formatRp(totalBalance)}</span>
+                <div class="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-1.5">
+                    <span>Siswa Menabung:</span>
+                    <span class="font-black">${classRecapData.length} Orang</span>
+                </div>
+                <div class="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-1.5">
+                    <span>Total Setoran:</span>
+                    <span class="font-black">+${formatRp(totalDeposit)}</span>
+                </div>
+                ${totalWithdraw > 0 ? `
+                <div class="px-3 py-1.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold flex items-center gap-1.5">
+                    <span>Total Penarikan:</span>
+                    <span class="font-black">-${formatRp(totalWithdraw)}</span>
+                </div>` : ''}
+                <div class="px-3 py-1.5 rounded-xl bg-brand-50 border border-brand-200 text-brand-800 text-xs font-bold flex items-center gap-1.5">
+                    <span>Total Tabungan Kelas:</span>
+                    <span class="font-black text-brand-900">${formatRp(totalBalance)}</span>
+                </div>
             `;
 
-            // Show detail, hide picker grid
-            document.getElementById('classPickerGrid').classList.add('hidden');
-            document.getElementById('classRecapDetail').classList.remove('hidden');
-            document.getElementById('btnExportClassRecap').classList.remove('hidden');
-            document.getElementById('btnPrintClassRecap').classList.remove('hidden');
+            // Show detail, hide picker table
+            document.getElementById('classPickerTableWrapper')?.classList.add('hidden');
+            document.getElementById('classRecapDetail')?.classList.remove('hidden');
 
             // Reset search & sort
             const searchEl = document.getElementById('classRecapSearch');
@@ -2627,7 +2732,7 @@
             const studentsInClass = (students || []).filter(s =>
                 (s.class || 'Tanpa Kelas').trim() === className
             );
-            return studentsInClass.map(s => {
+            const list = studentsInClass.map(s => {
                 // Match transaksi by studentNis (local) atau student_nis (Supabase)
                 const txs = (savingsTransactions || []).filter(t =>
                     (t.studentNis && t.studentNis === s.nis) ||
@@ -2640,8 +2745,6 @@
                     if (ttype === 'SETOR' || ttype === 'DEPOSIT') { totalDeposit += amt; depositCount++; }
                     else { totalWithdraw += amt; withdrawCount++; }
                 });
-                // Gunakan student.balance yang sudah dihitung recalculateStudentBalances()
-                // sebagai fallback jika transaksi kosong (data lama)
                 const computedBalance = totalDeposit - totalWithdraw;
                 const balance = txs.length > 0 ? computedBalance : Number(s.balance || 0);
                 return {
@@ -2651,10 +2754,13 @@
                     txCount: txs.length
                 };
             });
+
+            // HANYA tampilkan siswa yang menabung (memiliki saldo tabungan > 0 atau ada setoran > 0)
+            return list.filter(s => s.balance > 0 || s.totalDeposit > 0);
         }
 
         function filterClassRecapTable() {
-            const q = (document.getElementById('classRecapSearch')?.value || '').toLowerCase();
+            const q = (document.getElementById('classRecapSearch')?.value || '').toLowerCase().trim();
             const sort = document.getElementById('classRecapSortBy')?.value || 'name';
             let data = (classRecapData || []).filter(r =>
                 r.name.toLowerCase().includes(q) || r.nis.toLowerCase().includes(q)
@@ -2672,8 +2778,12 @@
             if (!tbody) return;
 
             if (data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-10 text-center text-slate-400 text-xs">Tidak ada data yang cocok</td></tr>`;
-                tfoot.innerHTML = '';
+                tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-12 text-center text-slate-400 font-semibold">
+                    <i data-lucide="piggy-bank" class="w-10 h-10 mx-auto mb-2 opacity-40"></i>
+                    Belum ada siswa yang menabung di kelas ini
+                </td></tr>`;
+                if (tfoot) tfoot.innerHTML = '';
+                safeLucide();
                 return;
             }
 
@@ -2682,43 +2792,50 @@
                 sumDeposit += r.totalDeposit;
                 sumWithdraw += r.totalWithdraw;
                 sumBalance += r.balance;
-                const balColor = r.balance >= 0 ? 'text-emerald-700 font-extrabold' : 'text-rose-600 font-extrabold';
+                const balColor = r.balance >= 0 ? 'text-emerald-700 font-black' : 'text-rose-600 font-black';
                 return `<tr class="hover:bg-slate-50/80 transition-colors">
-                    <td class="px-4 py-2.5 text-slate-400 font-semibold">${i + 1}</td>
-                    <td class="px-4 py-2.5 font-mono text-slate-600">${r.nis}</td>
-                    <td class="px-4 py-2.5 font-bold text-slate-800">${r.name}</td>
-                    <td class="px-4 py-2.5 text-center text-emerald-700 font-semibold">${r.depositCount}x</td>
-                    <td class="px-4 py-2.5 text-center text-rose-600 font-semibold">${r.withdrawCount}x</td>
-                    <td class="px-4 py-2.5 text-right text-emerald-700">${formatRp(r.totalDeposit)}</td>
-                    <td class="px-4 py-2.5 text-right text-rose-600">${formatRp(r.totalWithdraw)}</td>
-                    <td class="px-4 py-2.5 text-right ${balColor}">${formatRp(r.balance)}</td>
+                    <td class="p-3.5 pl-5 text-center text-slate-400 font-semibold">${i + 1}</td>
+                    <td class="p-3.5 font-mono text-slate-600 font-bold">${r.nis}</td>
+                    <td class="p-3.5 font-bold text-slate-900">${r.name}</td>
+                    <td class="p-3.5 text-center">
+                        <span class="px-2.5 py-0.5 text-[10px] font-extrabold text-brand-700 bg-brand-50 rounded-full border border-brand-200">
+                            ${r.depositCount}x Setor${r.withdrawCount > 0 ? ` • ${r.withdrawCount}x Tarik` : ''}
+                        </span>
+                    </td>
+                    <td class="p-3.5 text-right font-semibold text-emerald-700">${formatRp(r.totalDeposit)}</td>
+                    <td class="p-3.5 text-right font-semibold ${r.totalWithdraw > 0 ? 'text-rose-600' : 'text-slate-400'}">${formatRp(r.totalWithdraw)}</td>
+                    <td class="p-3.5 text-right pr-5 ${balColor} text-sm">${formatRp(r.balance)}</td>
                 </tr>`;
             }).join('');
 
-            tfoot.innerHTML = `<tr>
-                <td colspan="3" class="px-4 py-2.5 text-xs font-extrabold text-slate-700">TOTAL (${data.length} Siswa)</td>
-                <td class="px-4 py-2.5"></td>
-                <td class="px-4 py-2.5"></td>
-                <td class="px-4 py-2.5 text-right text-emerald-700">${formatRp(sumDeposit)}</td>
-                <td class="px-4 py-2.5 text-right text-rose-600">${formatRp(sumWithdraw)}</td>
-                <td class="px-4 py-2.5 text-right text-brand-700 font-extrabold">${formatRp(sumBalance)}</td>
-            </tr>`;
+            if (tfoot) {
+                tfoot.innerHTML = `<tr>
+                    <td colspan="3" class="p-3.5 pl-5 text-xs font-extrabold text-slate-800">TOTAL (${data.length} Siswa Menabung)</td>
+                    <td class="p-3.5"></td>
+                    <td class="p-3.5 text-right font-bold text-emerald-700">${formatRp(sumDeposit)}</td>
+                    <td class="p-3.5 text-right font-bold text-rose-600">${formatRp(sumWithdraw)}</td>
+                    <td class="p-3.5 text-right pr-5 text-emerald-800 font-black text-sm">${formatRp(sumBalance)}</td>
+                </tr>`;
+            }
+            safeLucide();
         }
 
         function backToClassPicker() {
             currentClassRecap = null;
-            document.getElementById('classPickerGrid').classList.remove('hidden');
-            document.getElementById('classRecapDetail').classList.add('hidden');
-            document.getElementById('btnExportClassRecap').classList.add('hidden');
-            document.getElementById('btnPrintClassRecap').classList.add('hidden');
+            document.getElementById('classPickerTableWrapper')?.classList.remove('hidden');
+            document.getElementById('classRecapDetail')?.classList.add('hidden');
+            safeLucide();
         }
 
         function exportClassRecapExcel() {
-            if (!currentClassRecap || !classRecapData.length) return;
+            if (!currentClassRecap || !classRecapData.length) {
+                showToast('Tidak ada data siswa menabung untuk diekspor!', 'warning');
+                return;
+            }
             const ws_data = [
-                ['No', 'NIS', 'Nama Siswa', 'Jml Setor', 'Jml Tarik', 'Total Setor', 'Total Tarik', 'Saldo'],
+                ['No', 'NIS', 'Nama Siswa', 'Kelas', 'Jml Setor', 'Jml Tarik', 'Total Setor (Rp)', 'Total Tarik (Rp)', 'Total Tabungan (Rp)'],
                 ...classRecapData.map((r, i) => [
-                    i + 1, r.nis, r.name, r.depositCount, r.withdrawCount,
+                    i + 1, r.nis, r.name, currentClassRecap, r.depositCount, r.withdrawCount,
                     r.totalDeposit, r.totalWithdraw, r.balance
                 ])
             ];
@@ -2726,9 +2843,14 @@
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'Rekap Kelas ' + currentClassRecap);
             XLSX.writeFile(wb, `Rekap_Tabungan_Kelas_${currentClassRecap}_${new Date().toLocaleDateString('id-ID').replace(/\//g,'-')}.xlsx`);
+            showToast('Rekap kelas berhasil diekspor ke Excel!', 'success');
         }
 
-        function printClassRecap() {
+        function printClassRecap(targetClass = null) {
+            if (targetClass) {
+                currentClassRecap = targetClass;
+                classRecapData = buildClassRecapData(targetClass);
+            }
             if (!currentClassRecap) return;
             const data = classRecapData;
             let sumDep = 0, sumWd = 0, sumBal = 0;
@@ -2736,9 +2858,10 @@
                 sumDep += r.totalDeposit; sumWd += r.totalWithdraw; sumBal += r.balance;
                 const balStyle = r.balance >= 0 ? 'color:#15803d;font-weight:700' : 'color:#dc2626;font-weight:700';
                 return `<tr>
-                    <td>${i+1}</td><td>${r.nis}</td><td>${r.name}</td>
-                    <td style="text-align:center">${r.depositCount}x</td>
-                    <td style="text-align:center">${r.withdrawCount}x</td>
+                    <td style="text-align:center">${i+1}</td>
+                    <td style="font-family:monospace">${r.nis}</td>
+                    <td style="font-weight:bold">${r.name}</td>
+                    <td style="text-align:center">${r.depositCount}x Setor${r.withdrawCount > 0 ? ` (${r.withdrawCount}x Tarik)` : ''}</td>
                     <td style="text-align:right;color:#15803d">${formatRp(r.totalDeposit)}</td>
                     <td style="text-align:right;color:#dc2626">${formatRp(r.totalWithdraw)}</td>
                     <td style="text-align:right;${balStyle}">${formatRp(r.balance)}</td>
@@ -2746,71 +2869,88 @@
             }).join('');
 
             const printDate = new Date().toLocaleDateString('id-ID', { dateStyle: 'full' });
-            const officer = currentUser?.name || 'Admin';
+            const officer = currentUser?.name || 'Administrator';
 
             const html = `<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Rekap Tabungan Kelas ${currentClassRecap}</title>
+<title>Rekap Tabungan Siswa - Kelas ${currentClassRecap}</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, sans-serif; font-size: 9pt; color: #0f172a; }
-  h1 { font-size: 13pt; font-weight: 900; text-align: center; text-transform: uppercase; }
-  h2 { font-size: 10pt; font-weight: 700; text-align: center; color: #475569; margin-top: 2px; }
+  body { font-family: Arial, sans-serif; font-size: 9pt; color: #0f172a; padding: 25px 30px; }
+  h1 { font-size: 14pt; font-weight: 900; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; }
+  h2 { font-size: 10pt; font-weight: 700; text-align: center; color: #475569; margin-top: 3px; text-transform: uppercase; }
   .meta { display: flex; justify-content: space-between; font-size: 8pt; color: #64748b;
-          margin: 10px 0; padding-bottom: 8px; border-bottom: 1px solid #cbd5e1; }
-  .title-block { text-align: center; padding-bottom: 10px; border-bottom: 2px solid #0f172a; margin-bottom: 10px; }
+          margin: 14px 0 8px 0; padding-bottom: 8px; border-bottom: 1px solid #cbd5e1; }
+  .title-block { text-align: center; padding-bottom: 12px; border-bottom: 2px solid #0f172a; margin-bottom: 10px; }
   table { width: 100%; border-collapse: collapse; page-break-inside: auto; margin-top: 8px; }
   thead { display: table-header-group; }
   tfoot { display: table-footer-group; }
   tr { page-break-inside: avoid; }
-  th { background: #e2e8f0; color: #334155; font-size: 7.5pt; font-weight: 700;
-       text-transform: uppercase; padding: 5px 6px; border: 1px solid #94a3b8; text-align: left; }
-  td { border: 1px solid #cbd5e1; padding: 4px 6px; font-size: 8.5pt; }
+  th { background: #e2e8f0 !important; color: #334155 !important; font-size: 8pt; font-weight: 700;
+       text-transform: uppercase; padding: 6px 8px; border: 1px solid #94a3b8; text-align: left; }
+  td { border: 1px solid #cbd5e1; padding: 6px 8px; font-size: 8.5pt; }
   tr:nth-child(even) td { background: #f8fafc; }
   tfoot td { background: #f1f5f9 !important; font-weight: 800; border-top: 2px solid #475569; }
-  @page { size: A4 landscape; margin: 10mm 12mm; }
+  .signatures { display: flex; justify-content: space-between; margin-top: 45px; page-break-inside: avoid; }
+  .sig-box { text-align: center; width: 220px; font-size: 8.5pt; }
+  .sig-space { height: 65px; }
+  @page { size: A4 portrait; margin: 12mm 15mm; }
   @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
 </style>
 </head>
 <body>
   <div class="title-block">
-    <h1>REKAP TABUNGAN KELAS ${currentClassRecap}</h1>
-    <h2>EduVault - Sistem Tabungan Siswa</h2>
+    <h1>REKAPITULASI TABUNGAN SISWA</h1>
+    <h2>KELAS: ${currentClassRecap} &bull; DAFTAR SISWA YANG MEMILIKI TABUNGAN</h2>
   </div>
   <div class="meta">
-    <span>Kelas: ${currentClassRecap} &nbsp;|&nbsp; Jumlah Siswa: ${data.length}</span>
+    <span>Rombel: <b>${currentClassRecap}</b> &nbsp;|&nbsp; Siswa Menabung: <b>${data.length} Orang</b></span>
     <span>Dicetak: ${printDate} &nbsp;|&nbsp; Petugas: ${officer}</span>
   </div>
   <table>
     <thead><tr>
-      <th style="width:30px">#</th><th>NIS</th><th>Nama Siswa</th>
-      <th style="text-align:center">Setor</th><th style="text-align:center">Tarik</th>
-      <th style="text-align:right">Total Setor</th><th style="text-align:right">Total Tarik</th>
-      <th style="text-align:right">Saldo</th>
+      <th style="width:35px;text-align:center">No</th>
+      <th style="width:110px">NIS</th>
+      <th>Nama Siswa</th>
+      <th style="width:120px;text-align:center">Frekuensi Mutasi</th>
+      <th style="width:110px;text-align:right">Total Setor</th>
+      <th style="width:110px;text-align:right">Total Tarik</th>
+      <th style="width:125px;text-align:right">Total Tabungan</th>
     </tr></thead>
-    <tbody>${rows}</tbody>
+    <tbody>${data.length > 0 ? rows : '<tr><td colspan="7" style="text-align:center;padding:25px;color:#94a3b8">Belum ada siswa yang menabung di kelas ini</td></tr>'}</tbody>
     <tfoot><tr>
-      <td colspan="5" style="font-size:8.5pt">TOTAL &mdash; ${data.length} Siswa</td>
-      <td style="text-align:right;color:#15803d">${formatRp(sumDep)}</td>
-      <td style="text-align:right;color:#dc2626">${formatRp(sumWd)}</td>
-      <td style="text-align:right;color:#1e40af">${formatRp(sumBal)}</td>
+      <td colspan="4" style="font-size:8.5pt;text-align:right">TOTAL TABUNGAN KELAS (${data.length} Siswa Menabung):</td>
+      <td style="text-align:right;color:#15803d;font-weight:700">${formatRp(sumDep)}</td>
+      <td style="text-align:right;color:#dc2626;font-weight:700">${formatRp(sumWd)}</td>
+      <td style="text-align:right;color:#15803d;font-weight:900;font-size:9.5pt">${formatRp(sumBal)}</td>
     </tr></tfoot>
   </table>
+
+  <div class="signatures">
+    <div class="sig-box">
+      <p>Mengetahui,</p>
+      <p>Wali Kelas ${currentClassRecap}</p>
+      <div class="sig-space"></div>
+      <p><b>( .................................................... )</b></p>
+    </div>
+    <div class="sig-box">
+      <p>&nbsp;</p>
+      <p>Petugas Tabungan / Kasir</p>
+      <div class="sig-space"></div>
+      <p><b>( ${officer} )</b></p>
+    </div>
+  </div>
 </body>
 </html>`;
 
-            const pw = window.open('', '_blank', 'width=1000,height=700');
+            const pw = window.open('', '_blank', 'width=900,height=700');
             if (!pw) { alert('Popup diblokir browser. Izinkan popup untuk mencetak.'); return; }
             pw.document.write(html);
             pw.document.close();
-            // Tunggu onload sebelum print agar semua render selesai
             pw.onload = () => { pw.focus(); pw.print(); pw.onafterprint = () => pw.close(); };
-            setTimeout(() => { if (pw && !pw.closed) { pw.focus(); pw.print(); } }, 800);
         }
-
-
 
         function recalculateStudentBalances() {
             students.forEach(s => {
