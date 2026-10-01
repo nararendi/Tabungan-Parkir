@@ -2898,8 +2898,8 @@
   td { border: 1px solid #cbd5e1; padding: 6px 8px; font-size: 8.5pt; }
   tr:nth-child(even) td { background: #f8fafc; }
   tfoot td { background: #f1f5f9 !important; font-weight: 800; border-top: 2px solid #475569; }
-  .signatures { display: flex; justify-content: space-between; margin-top: 45px; page-break-inside: avoid; }
-  .sig-box { text-align: center; width: 230px; font-size: 8.5pt; }
+  .signatures { display: flex; justify-content: flex-end; margin-top: 45px; page-break-inside: avoid; }
+  .sig-box { text-align: center; width: 250px; font-size: 8.5pt; }
   .sig-space { height: 60px; }
   @page { size: A4 portrait; margin: 12mm 15mm; }
   @media print {
@@ -2915,7 +2915,7 @@
   </div>
   <div class="meta">
     <span>Rombel: <b>${currentClassRecap}</b> &nbsp;|&nbsp; Siswa Menabung: <b>${data.length} Orang</b></span>
-    <span>Dicetak: ${printDate} &nbsp;|&nbsp; Petugas: ${officer}</span>
+    <span>Dicetak: ${printDate} &nbsp;|&nbsp; Bendahara: ${officer}</span>
   </div>
   <table>
     <thead><tr>
@@ -2938,18 +2938,10 @@
 
   <div class="signatures">
     <div class="sig-box">
-      <p style="color: #475569;">Mengetahui,</p>
-      <p style="font-weight: 700; color: #0f172a; margin-top: 2px;">Wali Kelas ${currentClassRecap}</p>
-      <div class="sig-space"></div>
-      <p style="font-weight: 700; color: #0f172a; border-bottom: 1px solid #94a3b8; display: inline-block; min-width: 170px;">( .................................................... )</p>
-      <p style="font-size: 7.5pt; color: #64748b; margin-top: 3px;">Tanda Tangan &amp; Nama Terang</p>
-    </div>
-    <div class="sig-box">
       <p style="color: #475569;">Dicetak pada: ${printDate}</p>
-      <p style="font-weight: 700; color: #0f172a; margin-top: 2px;">Petugas yang Sedang Login</p>
+      <p style="font-weight: 700; color: #0f172a; margin-top: 2px;">Bendahara</p>
       <div class="sig-space"></div>
       <p style="font-weight: 700; color: #0f172a; border-bottom: 1px solid #94a3b8; display: inline-block; min-width: 170px;">( ${officer} )</p>
-      <p style="font-size: 7.5pt; color: #64748b; margin-top: 3px;">Petugas: ${officerRole}</p>
     </div>
   </div>
 </body>
@@ -4603,42 +4595,16 @@
                 year: 'numeric'
             });
             const officerName = currentUser?.name || 'Administrator';
-            const officerRole = currentUser?.role === 'super_admin' ? 'Super Administrator' : (currentUser?.role || 'Petugas Tabungan');
-
-            let leftTitle = 'Mengetahui,';
-            let leftRole = 'Kepala Sekolah / Pimpinan';
-            let leftSubtitle = 'NIP. ........................................';
-
-            if (type === 'STUDENT') {
-                leftTitle = 'Mengetahui,';
-                leftRole = 'Orang Tua / Wali Siswa';
-                leftSubtitle = 'Tanda Tangan & Nama Terang';
-            } else if (type === 'PARKING') {
-                leftTitle = 'Mengetahui,';
-                leftRole = 'Koordinator / Pengelola Parkir';
-                leftSubtitle = 'NIP/ID. ........................................';
-            }
 
             return `
-            <div class="report-signatures" style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 35px; page-break-inside: avoid; width: 100%;">
-                <div style="text-align: center; width: 220px;">
-                    <p style="font-size: 8.5pt; color: #475569;">${leftTitle}</p>
-                    <p style="font-size: 8.5pt; font-weight: 700; color: #0f172a; margin-top: 2px;">${leftRole}</p>
-                    <div style="height: 60px;"></div>
-                    <p style="font-size: 8.5pt; font-weight: 700; color: #0f172a; border-bottom: 1px solid #94a3b8; display: inline-block; min-width: 170px;">
-                        ( .................................................... )
-                    </p>
-                    <p style="font-size: 7.5pt; color: #64748b; margin-top: 3px;">${leftSubtitle}</p>
-                </div>
-                
+            <div class="report-signatures" style="display: flex; justify-content: flex-end; align-items: flex-start; margin-top: 35px; page-break-inside: avoid; width: 100%;">
                 <div style="text-align: center; width: 250px;">
                     <p style="font-size: 8.5pt; color: #475569;">Dicetak pada: ${todayFormatted}</p>
-                    <p style="font-size: 8.5pt; font-weight: 700; color: #0f172a; margin-top: 2px;">Petugas yang Sedang Login</p>
+                    <p style="font-size: 8.5pt; font-weight: 700; color: #0f172a; margin-top: 2px;">Bendahara</p>
                     <div style="height: 60px;"></div>
                     <p style="font-size: 8.5pt; font-weight: 700; color: #0f172a; border-bottom: 1px solid #94a3b8; display: inline-block; min-width: 170px;" id="signatureOfficerName">
                         ( ${officerName} )
                     </p>
-                    <p style="font-size: 7.5pt; color: #64748b; margin-top: 3px;">Petugas: ${officerRole}</p>
                 </div>
             </div>
             `;
