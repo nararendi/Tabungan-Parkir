@@ -4501,15 +4501,29 @@
                 </div>
             `;
 
-            document.getElementById('reportTableHeader').innerHTML = `
-                <tr>
-                    <th class="p-3 w-10 text-center border-b border-slate-300"></th>
-                    <th class="p-3 border-b border-slate-300">Nama Siswa / NIS</th>
-                    <th class="p-3 border-b border-slate-300">Kelas</th>
-                    <th class="p-3 border-b border-slate-300">Jumlah Transaksi</th>
-                    <th class="p-3 border-b border-slate-300 text-right pr-4">Net Mutasi Periode</th>
-                </tr>
-            `;
+            const headerColTotal = (startDate || endDate) ? 'Total Tabungan (Net Periode)' : 'Total Jumlah Tabungan';
+
+            if (isForPrint) {
+                document.getElementById('reportTableHeader').innerHTML = `
+                    <tr>
+                        <th class="p-3 w-12 text-center border-b border-slate-300">No</th>
+                        <th class="p-3 border-b border-slate-300">Nama Siswa / NIS</th>
+                        <th class="p-3 border-b border-slate-300">Kelas</th>
+                        <th class="p-3 border-b border-slate-300 text-center">Jumlah Transaksi</th>
+                        <th class="p-3 border-b border-slate-300 text-right pr-4">${headerColTotal}</th>
+                    </tr>
+                `;
+            } else {
+                document.getElementById('reportTableHeader').innerHTML = `
+                    <tr>
+                        <th class="p-3 w-10 text-center border-b border-slate-300"></th>
+                        <th class="p-3 border-b border-slate-300">Nama Siswa / NIS</th>
+                        <th class="p-3 border-b border-slate-300">Kelas</th>
+                        <th class="p-3 border-b border-slate-300">Jumlah Transaksi</th>
+                        <th class="p-3 border-b border-slate-300 text-right pr-4">Net Mutasi Periode</th>
+                    </tr>
+                `;
+            }
 
             const tbody = document.getElementById('reportTableBody');
             if (filtered.length === 0) {
@@ -4540,54 +4554,77 @@
             const pagedNises = isForPrint ? groupNises : groupNises.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
             let html = '';
+            let rowIndex = 0;
             for (const nis of pagedNises) {
+                rowIndex++;
                 const group = grouped[nis];
                 const stud = students.find(s => s.nis === nis);
                 const cls = stud ? stud.class : '-';
                 const safeNis = nis.replace(/\W/g, '');
-                const isExpanded = isForPrint || expandedReportGroups.has(safeNis);
+                const isExpanded = expandedReportGroups.has(safeNis);
 
                 const groupSetor = group.transactions.filter(t => t.type === 'SETOR').reduce((a, b) => a + Number(b.amount || 0), 0);
                 const groupTarik = group.transactions.filter(t => t.type === 'TARIK').reduce((a, b) => a + Number(b.amount || 0), 0);
                 const groupNet = groupSetor - groupTarik;
 
-                html += `
-                <tr class="hover:bg-slate-100 cursor-pointer border-b border-slate-200 bg-slate-50 transition-colors" onclick="toggleReportGroup('${safeNis}')">
-                    <td class="p-3 text-center w-10">
-                        <i data-lucide="chevron-down" id="icon_rep_group_${safeNis}" class="w-4 h-4 text-slate-500 transition-transform ${isExpanded ? '' : '-rotate-90'} inline-block"></i>
-                    </td>
-                    <td class="p-3">
-                        <div class="font-extrabold text-slate-900">${group.studentName}</div>
-                        <div class="text-[10px] text-slate-500 font-mono">NIS: ${nis}</div>
-                    </td>
-                    <td class="p-3 font-bold text-slate-700">${cls}</td>
-                    <td class="p-3">
-                        <span class="px-2 py-0.5 text-[10px] font-extrabold text-brand-700 bg-brand-100 rounded">
-                            ${group.transactions.length} Mutasi
-                        </span>
-                    </td>
-                    <td class="p-3 text-right font-black ${groupNet >= 0 ? 'text-emerald-600' : 'text-rose-600'} pr-4">
-                        ${groupNet >= 0 ? '+' : ''}${formatRp(groupNet)}
-                    </td>
-                </tr>
-                `;
-
-                group.transactions.forEach(t => {
+                if (isForPrint) {
                     html += `
-                    <tr class="hover:bg-slate-50 child-rep-group-${safeNis} ${isExpanded ? '' : 'hidden'} border-b border-slate-100 bg-white">
-                        <td class="p-2.5 pl-6 font-semibold text-slate-600 text-[11px] border-l-2 border-brand-300">${t.date}</td>
-                        <td class="p-2.5 text-slate-500 text-[11px] italic" colspan="2">Catatan: ${t.note || '-'}</td>
-                        <td class="p-2.5">
-                            <span class="px-2 py-0.5 text-[10px] font-black rounded ${t.type === 'SETOR' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
-                                ${t.type === 'SETOR' ? '+ SETOR' : '- TARIK'}
+                    <tr class="border-b border-slate-200">
+                        <td class="p-3 text-center w-12 font-bold text-slate-700">${rowIndex}</td>
+                        <td class="p-3">
+                            <div class="font-extrabold text-slate-900">${group.studentName}</div>
+                            <div class="text-[10px] text-slate-500 font-mono">NIS: ${nis}</div>
+                        </td>
+                        <td class="p-3 font-bold text-slate-700">${cls}</td>
+                        <td class="p-3 text-center">
+                            <span class="px-2 py-0.5 text-[10px] font-extrabold text-brand-700 bg-brand-100 rounded">
+                                ${group.transactions.length} Mutasi
                             </span>
                         </td>
-                        <td class="p-2.5 text-right font-bold pr-4 ${t.type === 'SETOR' ? 'text-emerald-600' : 'text-rose-600'}">
-                            ${t.type === 'SETOR' ? '+' : '-'}${formatRp(t.amount)}
+                        <td class="p-3 text-right font-black ${groupNet >= 0 ? 'text-emerald-600' : 'text-rose-600'} pr-4">
+                            ${groupNet >= 0 ? '+' : ''}${formatRp(groupNet)}
                         </td>
                     </tr>
                     `;
-                });
+                } else {
+                    html += `
+                    <tr class="hover:bg-slate-100 cursor-pointer border-b border-slate-200 bg-slate-50 transition-colors" onclick="toggleReportGroup('${safeNis}')">
+                        <td class="p-3 text-center w-10">
+                            <i data-lucide="chevron-down" id="icon_rep_group_${safeNis}" class="w-4 h-4 text-slate-500 transition-transform ${isExpanded ? '' : '-rotate-90'} inline-block"></i>
+                        </td>
+                        <td class="p-3">
+                            <div class="font-extrabold text-slate-900">${group.studentName}</div>
+                            <div class="text-[10px] text-slate-500 font-mono">NIS: ${nis}</div>
+                        </td>
+                        <td class="p-3 font-bold text-slate-700">${cls}</td>
+                        <td class="p-3">
+                            <span class="px-2 py-0.5 text-[10px] font-extrabold text-brand-700 bg-brand-100 rounded">
+                                ${group.transactions.length} Mutasi
+                            </span>
+                        </td>
+                        <td class="p-3 text-right font-black ${groupNet >= 0 ? 'text-emerald-600' : 'text-rose-600'} pr-4">
+                            ${groupNet >= 0 ? '+' : ''}${formatRp(groupNet)}
+                        </td>
+                    </tr>
+                    `;
+
+                    group.transactions.forEach(t => {
+                        html += `
+                        <tr class="hover:bg-slate-50 child-rep-group-${safeNis} ${isExpanded ? '' : 'hidden'} border-b border-slate-100 bg-white">
+                            <td class="p-2.5 pl-6 font-semibold text-slate-600 text-[11px] border-l-2 border-brand-300">${t.date}</td>
+                            <td class="p-2.5 text-slate-500 text-[11px] italic" colspan="2">Catatan: ${t.note || '-'}</td>
+                            <td class="p-2.5">
+                                <span class="px-2 py-0.5 text-[10px] font-black rounded ${t.type === 'SETOR' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
+                                    ${t.type === 'SETOR' ? '+ SETOR' : '- TARIK'}
+                                </span>
+                            </td>
+                            <td class="p-2.5 text-right font-bold pr-4 ${t.type === 'SETOR' ? 'text-emerald-600' : 'text-rose-600'}">
+                                ${t.type === 'SETOR' ? '+' : '-'}${formatRp(t.amount)}
+                            </td>
+                        </tr>
+                        `;
+                    });
+                }
             }
 
             tbody.innerHTML = html;
