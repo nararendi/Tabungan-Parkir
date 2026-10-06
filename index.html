@@ -1212,6 +1212,16 @@
                             <h3 class="text-sm font-extrabold text-slate-900">Rekap Tabungan / Kelas</h3>
                             <p class="text-[11px] text-slate-400 font-medium mt-0.5">Daftar rekapitulasi tabungan siswa per rombongan belajar / kelas</p>
                         </div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <button onclick="exportAllClassesRecapExcel()" id="btnExportAllClassesRecap" class="px-3.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm cursor-pointer" title="Ekspor Rekap Tabungan Semua Kelas ke Excel">
+                                <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600"></i>
+                                <span>Ekspor Excel</span>
+                            </button>
+                            <button onclick="openPrintAllClassesModal()" id="btnPrintAllClassesRecap" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs transition-all flex items-center gap-1.5 shadow-md shadow-brand-600/20 cursor-pointer" title="Cetak Rekap Laporan Tabungan Semua Kelas">
+                                <i data-lucide="printer" class="w-4 h-4"></i>
+                                <span>Cetak Laporan Semua Kelas</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -1924,6 +1934,77 @@
             <div class="flex items-center justify-center gap-2 pt-2">
                 <button onclick="closeConfirmModal()" class="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-100 transition-all">Batal</button>
                 <button id="confirmModalBtn" class="flex-1 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shadow-rose-600/20 transition-all">Lanjutkan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- MODAL: PILIHAN CETAK REKAP SEMUA KELAS                         -->
+    <!-- ============================================================== -->
+    <div id="printAllClassesModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-lg p-6 space-y-5">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3.5">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center shadow-inner">
+                        <i data-lucide="printer" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-900">Cetak Laporan Semua Kelas</h3>
+                        <p class="text-xs text-slate-500 font-medium">Pilih format laporan tabungan yang ingin dicetak</p>
+                    </div>
+                </div>
+                <button onclick="closePrintAllClassesModal()" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition-all cursor-pointer">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <!-- Option 1: Rekap Ringkasan (Standar & Rekomendasi) -->
+                <div class="p-4 rounded-2xl border-2 border-brand-200 bg-brand-50/40 hover:bg-brand-50 hover:border-brand-400 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer group" onclick="printAllClassesRecap('summary'); closePrintAllClassesModal();">
+                    <div class="flex items-start gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-brand-600 text-white flex items-center justify-center flex-shrink-0 mt-0.5 shadow-md shadow-brand-600/30">
+                            <i data-lucide="table" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h4 class="text-xs font-extrabold text-slate-900 group-hover:text-brand-700 transition-colors">Rekap Ringkasan Per Kelas</h4>
+                                <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold">Rekomendasi</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 font-medium mt-1">Tabel rekapitulasi ringkasan saldo seluruh rombel/kelas (Total Siswa, Siswa Menabung, Setoran, Penarikan, & Saldo Kas). Format rapi & hemat kertas (1-2 lembar).</p>
+                        </div>
+                    </div>
+                    <button class="px-3.5 py-2 rounded-xl bg-brand-600 text-white font-bold text-xs shadow-md shadow-brand-600/20 flex-shrink-0 group-hover:bg-brand-700 transition-all flex items-center justify-center gap-1.5 pointer-events-none">
+                        <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+                        <span>Cetak</span>
+                    </button>
+                </div>
+
+                <!-- Option 2: Rekap Rinci Seluruh Siswa -->
+                <div class="p-4 rounded-2xl border-2 border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer group" onclick="printAllClassesRecap('detail'); closePrintAllClassesModal();">
+                    <div class="flex items-start gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-slate-800 text-white flex items-center justify-center flex-shrink-0 mt-0.5 shadow-md">
+                            <i data-lucide="users" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-extrabold text-slate-900 group-hover:text-slate-800 transition-colors">Rekap Rinci Semua Kelas</h4>
+                            <p class="text-[11px] text-slate-500 font-medium mt-1">Laporan lengkap memuat ringkasan rombel dan rincian nama siswa, NIS, frekuensi mutasi, serta saldo untuk setiap kelas secara berturut-turut.</p>
+                        </div>
+                    </div>
+                    <button class="px-3.5 py-2 rounded-xl bg-slate-800 text-white font-bold text-xs shadow-md flex-shrink-0 group-hover:bg-slate-900 transition-all flex items-center justify-center gap-1.5 pointer-events-none">
+                        <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+                        <span>Cetak</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                <button type="button" onclick="exportAllClassesRecapExcel(); closePrintAllClassesModal();" class="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1.5 cursor-pointer">
+                    <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                    <span>Ekspor ke Excel (.xlsx)</span>
+                </button>
+                <button type="button" onclick="closePrintAllClassesModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-100 transition-all cursor-pointer">
+                    Tutup
+                </button>
             </div>
         </div>
     </div>
@@ -2952,6 +3033,457 @@
             pw.document.write(html);
             pw.document.close();
             pw.onload = () => { pw.focus(); pw.print(); pw.onafterprint = () => pw.close(); };
+            setTimeout(() => { if (!pw.closed) { pw.focus(); pw.print(); } }, 600);
+        }
+
+        function getAllClassesStats() {
+            recalculateStudentBalances();
+
+            const nisToClass = {};
+            (students || []).forEach(s => {
+                if (s.nis) nisToClass[s.nis] = (s.class || 'Tanpa Kelas').trim();
+            });
+
+            const classMap = {};
+            (students || []).forEach(s => {
+                const cls = (s.class || 'Tanpa Kelas').trim();
+                if (!classMap[cls]) {
+                    classMap[cls] = {
+                        name: cls,
+                        count: 0,
+                        saversCount: 0,
+                        totalDeposit: 0,
+                        totalWithdraw: 0,
+                        totalBalance: 0
+                    };
+                }
+                classMap[cls].count++;
+                const bal = Number(s.balance || 0);
+                if (bal > 0) {
+                    classMap[cls].saversCount++;
+                }
+                classMap[cls].totalBalance += bal;
+            });
+
+            // Akumulasi dari riwayat transaksi
+            (savingsTransactions || []).forEach(t => {
+                const nis = t.studentNis || t.student_nis;
+                const cls = nisToClass[nis];
+                if (cls && classMap[cls]) {
+                    const amt = Number(t.amount || 0);
+                    const ttype = (t.type || '').toUpperCase();
+                    if (ttype === 'SETOR' || ttype === 'DEPOSIT') {
+                        classMap[cls].totalDeposit += amt;
+                    } else {
+                        classMap[cls].totalWithdraw += amt;
+                    }
+                }
+            });
+
+            // Fallback apabila ada saldo awal tanpa riwayat transaksi
+            Object.values(classMap).forEach(c => {
+                if (c.totalDeposit === 0 && c.totalWithdraw === 0 && c.totalBalance > 0) {
+                    c.totalDeposit = c.totalBalance;
+                }
+            });
+
+            return Object.values(classMap).sort((a, b) =>
+                a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
+            );
+        }
+
+        function openPrintAllClassesModal() {
+            const modal = document.getElementById('printAllClassesModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                safeLucide();
+            } else {
+                printAllClassesRecap('summary');
+            }
+        }
+
+        function closePrintAllClassesModal() {
+            const modal = document.getElementById('printAllClassesModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function printAllClassesRecap(mode = 'summary') {
+            const classStats = getAllClassesStats();
+            if (!classStats || classStats.length === 0) {
+                showToast('Tidak ada data kelas untuk dicetak!', 'warning');
+                return;
+            }
+
+            let grandTotalStudents = 0;
+            let grandTotalSavers = 0;
+            let grandTotalDeposit = 0;
+            let grandTotalWithdraw = 0;
+            let grandTotalBalance = 0;
+
+            classStats.forEach(c => {
+                grandTotalStudents += c.count;
+                grandTotalSavers += c.saversCount;
+                grandTotalDeposit += c.totalDeposit;
+                grandTotalWithdraw += c.totalWithdraw;
+                grandTotalBalance += c.totalBalance;
+            });
+
+            const printDate = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            const officer = currentUser?.name || 'Administrator';
+
+            const summaryRows = classStats.map((c, i) => {
+                const balStyle = c.totalBalance >= 0 ? 'color:#15803d;font-weight:700' : 'color:#dc2626;font-weight:700';
+                const pct = c.count > 0 ? ((c.saversCount / c.count) * 100).toFixed(0) : '0';
+                return `<tr>
+                    <td style="text-align:center">${i + 1}</td>
+                    <td style="font-weight:bold">${c.name}</td>
+                    <td style="text-align:center">${c.count} Siswa</td>
+                    <td style="text-align:center"><b>${c.saversCount} Siswa</b> <span style="font-size:7.5pt;color:#64748b">(${pct}%)</span></td>
+                    <td style="text-align:right;color:#15803d">${formatRp(c.totalDeposit)}</td>
+                    <td style="text-align:right;color:#dc2626">${formatRp(c.totalWithdraw)}</td>
+                    <td style="text-align:right;${balStyle}">${formatRp(c.totalBalance)}</td>
+                </tr>`;
+            }).join('');
+
+            let bodyContent = '';
+
+            if (mode === 'summary') {
+                bodyContent = `
+  <div class="title-block">
+    <h1>LAPORAN REKAPITULASI TABUNGAN KELAS</h1>
+    <h2>REKAPITULASI SALDO TABUNGAN SELURUH KELAS / ROMBONGAN BELAJAR</h2>
+  </div>
+  <div class="meta">
+    <span>Total Rombel: <b>${classStats.length} Kelas</b> &nbsp;|&nbsp; Total Siswa: <b>${grandTotalStudents} Siswa</b> &nbsp;|&nbsp; Siswa Menabung: <b>${grandTotalSavers} Siswa</b></span>
+    <span>Dicetak: ${printDate} &nbsp;|&nbsp; Bendahara: ${officer}</span>
+  </div>
+
+  <div class="metrics-grid">
+    <div class="metric-box">
+      <div class="m-label">TOTAL SISWA</div>
+      <div class="m-val">${grandTotalStudents} Siswa</div>
+    </div>
+    <div class="metric-box m-green">
+      <div class="m-label">SISWA MENABUNG</div>
+      <div class="m-val" style="color:#15803d">${grandTotalSavers} Siswa (${grandTotalStudents > 0 ? ((grandTotalSavers/grandTotalStudents)*100).toFixed(1) : 0}%)</div>
+    </div>
+    <div class="metric-box">
+      <div class="m-label">TOTAL SETORAN</div>
+      <div class="m-val" style="color:#15803d">${formatRp(grandTotalDeposit)}</div>
+    </div>
+    <div class="metric-box">
+      <div class="m-label">TOTAL PENARIKAN</div>
+      <div class="m-val" style="color:#dc2626">${formatRp(grandTotalWithdraw)}</div>
+    </div>
+    <div class="metric-box m-blue">
+      <div class="m-label">TOTAL TABUNGAN</div>
+      <div class="m-val" style="color:#1d4ed8">${formatRp(grandTotalBalance)}</div>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:35px;text-align:center">No</th>
+        <th>Nama Rombel / Kelas</th>
+        <th style="width:95px;text-align:center">Total Siswa</th>
+        <th style="width:125px;text-align:center">Siswa Menabung</th>
+        <th style="width:115px;text-align:right">Total Setoran</th>
+        <th style="width:115px;text-align:right">Total Penarikan</th>
+        <th style="width:130px;text-align:right">Saldo Tabungan</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${summaryRows}
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="2" style="font-weight:900;text-transform:uppercase">TOTAL SELURUH KELAS:</td>
+        <td style="text-align:center;font-weight:800">${grandTotalStudents} Siswa</td>
+        <td style="text-align:center;font-weight:800;color:#15803d">${grandTotalSavers} Siswa</td>
+        <td style="text-align:right;font-weight:800;color:#15803d">${formatRp(grandTotalDeposit)}</td>
+        <td style="text-align:right;font-weight:800;color:#dc2626">${formatRp(grandTotalWithdraw)}</td>
+        <td style="text-align:right;font-weight:900;font-size:9.5pt;color:#15803d">${formatRp(grandTotalBalance)}</td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <div class="signatures">
+    <div class="sig-box">
+      <p style="color: #475569;">&nbsp;</p>
+      <p style="font-weight: 700; color: #0f172a; margin-top: 2px;">Mengetahui,<br>Kepala Sekolah / Pimpinan</p>
+      <div class="sig-space"></div>
+      <p style="font-weight: 700; color: #0f172a; border-bottom: 1px solid #94a3b8; display: inline-block; min-width: 170px;">( ............................................ )</p>
+    </div>
+    <div class="sig-box">
+      <p style="color: #475569;">Dicetak pada: ${printDate}</p>
+      <p style="font-weight: 700; color: #0f172a; margin-top: 2px;">Pengelola / Bendahara Tabungan</p>
+      <div class="sig-space"></div>
+      <p style="font-weight: 700; color: #0f172a; border-bottom: 1px solid #94a3b8; display: inline-block; min-width: 170px;">( ${officer} )</p>
+    </div>
+  </div>
+                `;
+            } else {
+                let detailSections = '';
+                classStats.forEach((c, idx) => {
+                    const classDetailList = buildClassRecapData(c.name);
+                    let classDep = 0, classWd = 0, classBal = 0;
+                    const studentRows = classDetailList.map((s, sIdx) => {
+                        classDep += s.totalDeposit;
+                        classWd += s.totalWithdraw;
+                        classBal += s.balance;
+                        const sBalStyle = s.balance >= 0 ? 'color:#15803d;font-weight:700' : 'color:#dc2626;font-weight:700';
+                        return `<tr>
+                            <td style="text-align:center">${sIdx + 1}</td>
+                            <td style="font-family:monospace">${s.nis}</td>
+                            <td style="font-weight:bold">${s.name}</td>
+                            <td style="text-align:center">${s.depositCount}x Setor${s.withdrawCount > 0 ? ` (${s.withdrawCount}x Tarik)` : ''}</td>
+                            <td style="text-align:right;color:#15803d">${formatRp(s.totalDeposit)}</td>
+                            <td style="text-align:right;color:#dc2626">${formatRp(s.totalWithdraw)}</td>
+                            <td style="text-align:right;${sBalStyle}">${formatRp(s.balance)}</td>
+                        </tr>`;
+                    }).join('');
+
+                    detailSections += `
+    <div class="class-section ${idx > 0 ? 'page-break-before' : ''}">
+      <div style="background:#f1f5f9;border:1px solid #cbd5e1;padding:8px 12px;border-radius:6px;margin:18px 0 6px 0;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <span style="font-size:10.5pt;font-weight:900;color:#0f172a">KELAS: ${c.name}</span>
+          <span style="font-size:8pt;color:#64748b;margin-left:8px">(${c.count} Total Siswa &bull; ${classDetailList.length} Siswa Menabung)</span>
+        </div>
+        <div style="font-size:9.5pt;font-weight:900;color:#15803d">
+          Saldo Kelas: ${formatRp(c.totalBalance)}
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:35px;text-align:center">No</th>
+            <th style="width:110px">NIS</th>
+            <th>Nama Siswa</th>
+            <th style="width:120px;text-align:center">Frekuensi Mutasi</th>
+            <th style="width:110px;text-align:right">Total Setor</th>
+            <th style="width:110px;text-align:right">Total Tarik</th>
+            <th style="width:125px;text-align:right">Saldo Tabungan</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${classDetailList.length > 0 ? studentRows : '<tr><td colspan="7" style="text-align:center;padding:12px;color:#94a3b8">Belum ada siswa yang menabung di kelas ini</td></tr>'}
+        </tbody>
+        ${classDetailList.length > 0 ? `
+        <tfoot>
+          <tr>
+            <td colspan="4" style="text-align:right;font-weight:700">SUBTOTAL KELAS ${c.name}:</td>
+            <td style="text-align:right;color:#15803d;font-weight:700">${formatRp(classDep)}</td>
+            <td style="text-align:right;color:#dc2626;font-weight:700">${formatRp(classWd)}</td>
+            <td style="text-align:right;color:#15803d;font-weight:900">${formatRp(classBal)}</td>
+          </tr>
+        </tfoot>` : ''}
+      </table>
+    </div>
+                    `;
+                });
+
+                bodyContent = `
+  <div class="title-block">
+    <h1>LAPORAN RINCI TABUNGAN SISWA PER KELAS</h1>
+    <h2>REKAPITULASI KESELURUHAN KELAS BESERTA RINCIAN SISWA MENABUNG</h2>
+  </div>
+  <div class="meta">
+    <span>Total Rombel: <b>${classStats.length} Kelas</b> &nbsp;|&nbsp; Total Siswa: <b>${grandTotalStudents} Siswa</b> &nbsp;|&nbsp; Siswa Menabung: <b>${grandTotalSavers} Siswa</b></span>
+    <span>Dicetak: ${printDate} &nbsp;|&nbsp; Bendahara: ${officer}</span>
+  </div>
+
+  <div class="metrics-grid">
+    <div class="metric-box">
+      <div class="m-label">TOTAL SISWA</div>
+      <div class="m-val">${grandTotalStudents} Siswa</div>
+    </div>
+    <div class="metric-box m-green">
+      <div class="m-label">SISWA MENABUNG</div>
+      <div class="m-val" style="color:#15803d">${grandTotalSavers} Siswa</div>
+    </div>
+    <div class="metric-box">
+      <div class="m-label">TOTAL SETORAN</div>
+      <div class="m-val" style="color:#15803d">${formatRp(grandTotalDeposit)}</div>
+    </div>
+    <div class="metric-box">
+      <div class="m-label">TOTAL PENARIKAN</div>
+      <div class="m-val" style="color:#dc2626">${formatRp(grandTotalWithdraw)}</div>
+    </div>
+    <div class="metric-box m-blue">
+      <div class="m-label">TOTAL TABUNGAN</div>
+      <div class="m-val" style="color:#1d4ed8">${formatRp(grandTotalBalance)}</div>
+    </div>
+  </div>
+
+  <div style="margin-top:14px">
+    <h3 style="font-size:9.5pt;font-weight:900;text-transform:uppercase;margin-bottom:6px;border-bottom:1px solid #cbd5e1;padding-bottom:4px">I. RINGKASAN REKAPITULASI SEMUA KELAS</h3>
+    <table>
+      <thead>
+        <tr>
+          <th style="width:35px;text-align:center">No</th>
+          <th>Nama Rombel / Kelas</th>
+          <th style="width:95px;text-align:center">Total Siswa</th>
+          <th style="width:125px;text-align:center">Siswa Menabung</th>
+          <th style="width:115px;text-align:right">Total Setoran</th>
+          <th style="width:115px;text-align:right">Total Penarikan</th>
+          <th style="width:130px;text-align:right">Saldo Tabungan</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${summaryRows}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="2" style="font-weight:900">TOTAL SELURUH KELAS:</td>
+          <td style="text-align:center;font-weight:800">${grandTotalStudents} Siswa</td>
+          <td style="text-align:center;font-weight:800;color:#15803d">${grandTotalSavers} Siswa</td>
+          <td style="text-align:right;font-weight:800;color:#15803d">${formatRp(grandTotalDeposit)}</td>
+          <td style="text-align:right;font-weight:800;color:#dc2626">${formatRp(grandTotalWithdraw)}</td>
+          <td style="text-align:right;font-weight:900;font-size:9.5pt;color:#15803d">${formatRp(grandTotalBalance)}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <div style="margin-top:20px">
+    <h3 style="font-size:9.5pt;font-weight:900;text-transform:uppercase;margin-bottom:6px;border-bottom:1px solid #cbd5e1;padding-bottom:4px">II. RINCIAN SISWA MENABUNG PER KELAS</h3>
+    ${detailSections}
+  </div>
+
+  <div class="signatures">
+    <div class="sig-box">
+      <p style="color: #475569;">&nbsp;</p>
+      <p style="font-weight: 700; color: #0f172a; margin-top: 2px;">Mengetahui,<br>Kepala Sekolah / Pimpinan</p>
+      <div class="sig-space"></div>
+      <p style="font-weight: 700; color: #0f172a; border-bottom: 1px solid #94a3b8; display: inline-block; min-width: 170px;">( ............................................ )</p>
+    </div>
+    <div class="sig-box">
+      <p style="color: #475569;">Dicetak pada: ${printDate}</p>
+      <p style="font-weight: 700; color: #0f172a; margin-top: 2px;">Pengelola / Bendahara Tabungan</p>
+      <div class="sig-space"></div>
+      <p style="font-weight: 700; color: #0f172a; border-bottom: 1px solid #94a3b8; display: inline-block; min-width: 170px;">( ${officer} )</p>
+    </div>
+  </div>
+                `;
+            }
+
+            const html = `<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Laporan Tabungan Semua Kelas - ${mode === 'summary' ? 'Ringkasan' : 'Rinci'}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; font-size: 8.5pt; color: #0f172a; padding: 20px 25px; }
+  h1 { font-size: 13pt; font-weight: 900; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; }
+  h2 { font-size: 9.5pt; font-weight: 700; text-align: center; color: #475569; margin-top: 3px; text-transform: uppercase; }
+  .meta { display: flex; justify-content: space-between; font-size: 8pt; color: #64748b;
+          margin: 12px 0 8px 0; padding-bottom: 8px; border-bottom: 1px solid #cbd5e1; }
+  .title-block { text-align: center; padding-bottom: 10px; border-bottom: 2px solid #0f172a; margin-bottom: 10px; }
+  .metrics-grid { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
+  .metric-box { flex: 1; min-width: 110px; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 10px; background: #f8fafc; }
+  .metric-box.m-green { background: #f0fdf4; border-color: #bbf7d0; }
+  .metric-box.m-blue { background: #eff6ff; border-color: #bfdbfe; }
+  .m-label { font-size: 7pt; color: #64748b; font-weight: 700; text-transform: uppercase; }
+  .m-val { font-size: 10pt; font-weight: 900; color: #0f172a; margin-top: 2px; }
+  table { width: 100%; border-collapse: collapse; page-break-inside: auto; margin-top: 6px; }
+  thead { display: table-header-group; }
+  tfoot { display: table-row-group !important; page-break-inside: avoid !important; }
+  tr { page-break-inside: avoid; }
+  th { background: #e2e8f0 !important; color: #334155 !important; font-size: 7.5pt; font-weight: 700;
+       text-transform: uppercase; padding: 5px 6px; border: 1px solid #94a3b8; text-align: left; }
+  td { border: 1px solid #cbd5e1; padding: 4.5px 6px; font-size: 8pt; }
+  tr:nth-child(even) td { background: #f8fafc; }
+  tfoot td { background: #f1f5f9 !important; font-weight: 800; border-top: 2px solid #475569; }
+  .signatures { display: flex; justify-content: space-between; margin-top: 35px; page-break-inside: avoid; }
+  .sig-box { text-align: center; width: 220px; font-size: 8pt; }
+  .sig-space { height: 50px; }
+  .page-break-before { page-break-before: auto; }
+  @page { size: A4 portrait; margin: 10mm 12mm; }
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    tfoot { display: table-row-group !important; page-break-inside: avoid !important; }
+  }
+</style>
+</head>
+<body>
+  ${bodyContent}
+</body>
+</html>`;
+
+            const pw = window.open('', '_blank', 'width=950,height=750');
+            if (!pw) { alert('Popup diblokir browser. Izinkan popup untuk mencetak.'); return; }
+            pw.document.write(html);
+            pw.document.close();
+            pw.onload = () => { pw.focus(); pw.print(); pw.onafterprint = () => pw.close(); };
+            setTimeout(() => { if (!pw.closed) { pw.focus(); pw.print(); } }, 600);
+        }
+
+        function exportAllClassesRecapExcel() {
+            const classStats = getAllClassesStats();
+            if (!classStats || classStats.length === 0) {
+                showToast('Tidak ada data kelas untuk diekspor!', 'warning');
+                return;
+            }
+
+            let grandTotalStudents = 0;
+            let grandTotalSavers = 0;
+            let grandTotalDeposit = 0;
+            let grandTotalWithdraw = 0;
+            let grandTotalBalance = 0;
+
+            const summaryRows = [
+                ['No', 'Nama Rombel / Kelas', 'Total Siswa', 'Siswa Menabung', '% Partisipasi', 'Total Setor (Rp)', 'Total Tarik (Rp)', 'Saldo Tabungan (Rp)']
+            ];
+
+            classStats.forEach((c, idx) => {
+                grandTotalStudents += c.count;
+                grandTotalSavers += c.saversCount;
+                grandTotalDeposit += c.totalDeposit;
+                grandTotalWithdraw += c.totalWithdraw;
+                grandTotalBalance += c.totalBalance;
+                const pct = c.count > 0 ? `${((c.saversCount / c.count) * 100).toFixed(1)}%` : '0%';
+                summaryRows.push([
+                    idx + 1, c.name, c.count, c.saversCount, pct, c.totalDeposit, c.totalWithdraw, c.totalBalance
+                ]);
+            });
+
+            summaryRows.push([
+                'TOTAL', 'SELURUH KELAS', grandTotalStudents, grandTotalSavers,
+                grandTotalStudents > 0 ? `${((grandTotalSavers / grandTotalStudents) * 100).toFixed(1)}%` : '0%',
+                grandTotalDeposit, grandTotalWithdraw, grandTotalBalance
+            ]);
+
+            const wb = XLSX.utils.book_new();
+            const wsSummary = XLSX.utils.aoa_to_sheet(summaryRows);
+            XLSX.utils.book_append_sheet(wb, wsSummary, 'Rekap Per Kelas');
+
+            // Sheet 2: Rincian Seluruh Siswa
+            const detailRows = [
+                ['No', 'Kelas', 'NIS', 'Nama Siswa', 'Frekuensi Setor', 'Frekuensi Tarik', 'Total Setor (Rp)', 'Total Tarik (Rp)', 'Saldo Tabungan (Rp)']
+            ];
+            let studentCounter = 0;
+            classStats.forEach(c => {
+                const classStudents = buildClassRecapData(c.name);
+                classStudents.forEach(s => {
+                    studentCounter++;
+                    detailRows.push([
+                        studentCounter, c.name, s.nis, s.name, s.depositCount, s.withdrawCount,
+                        s.totalDeposit, s.totalWithdraw, s.balance
+                    ]);
+                });
+            });
+
+            if (detailRows.length > 1) {
+                const wsDetail = XLSX.utils.aoa_to_sheet(detailRows);
+                XLSX.utils.book_append_sheet(wb, wsDetail, 'Rincian Siswa Menabung');
+            }
+
+            const dateStr = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
+            XLSX.writeFile(wb, `Rekap_Tabungan_Semua_Kelas_${dateStr}.xlsx`);
+            showToast('Rekap seluruh kelas berhasil diekspor ke Excel!', 'success');
         }
 
         function recalculateStudentBalances() {
@@ -6113,6 +6645,7 @@ CREATE POLICY "Anon Full Access Parking" ON public.parking_logs FOR ALL TO anon,
                     closeLoginDatabaseModal();
                     closeSavingsExcelModal();
                     closeParkingExcelModal();
+                    closePrintAllClassesModal();
                 }
             });
 
