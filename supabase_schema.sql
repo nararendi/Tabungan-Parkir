@@ -104,6 +104,12 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'app_users') THEN
         ALTER PUBLICATION supabase_realtime ADD TABLE public.app_users;
     END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'teachers') THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.teachers;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'teacher_savings_transactions') THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.teacher_savings_transactions;
+    END IF;
 END $$;
 
 -- =============================================
