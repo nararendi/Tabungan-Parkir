@@ -64,18 +64,48 @@ CREATE TABLE IF NOT EXISTS public.parking_logs (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
+-- 5. TABEL GURU & KARYAWAN
+CREATE TABLE IF NOT EXISTS public.teachers (
+    id TEXT PRIMARY KEY DEFAULT ('tch_' || gen_random_uuid()::text),
+    nip TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    jk TEXT DEFAULT 'L',
+    role TEXT DEFAULT 'Guru',
+    phone TEXT DEFAULT '',
+    balance NUMERIC DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 6. TABEL TRANSAKSI TABUNGAN GURU & KARYAWAN
+CREATE TABLE IF NOT EXISTS public.teacher_savings_transactions (
+    id TEXT PRIMARY KEY DEFAULT ('tx_tch_' || gen_random_uuid()::text),
+    teacher_nip TEXT NOT NULL,
+    teacher_name TEXT NOT NULL,
+    type TEXT CHECK (type IN ('SETOR', 'TARIK')) NOT NULL,
+    amount NUMERIC NOT NULL CHECK (amount > 0),
+    date DATE NOT NULL DEFAULT CURRENT_DATE,
+    note TEXT DEFAULT '',
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
 -- Indexes — tambah kalau belum ada
 CREATE INDEX IF NOT EXISTS idx_savings_student_nis ON public.savings_transactions(student_nis);
 CREATE INDEX IF NOT EXISTS idx_savings_date ON public.savings_transactions(date);
 CREATE INDEX IF NOT EXISTS idx_parking_date ON public.parking_logs(date);
 CREATE INDEX IF NOT EXISTS idx_students_class ON public.students(class);
 CREATE INDEX IF NOT EXISTS idx_students_name ON public.students(name);
+CREATE INDEX IF NOT EXISTS idx_teachers_nip ON public.teachers(nip);
+CREATE INDEX IF NOT EXISTS idx_teachers_name ON public.teachers(name);
+CREATE INDEX IF NOT EXISTS idx_teacher_savings_nip ON public.teacher_savings_transactions(teacher_nip);
+CREATE INDEX IF NOT EXISTS idx_teacher_savings_date ON public.teacher_savings_transactions(date);
 
 -- RLS Policies
 ALTER TABLE public.app_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.students ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.savings_transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.parking_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.teacher_savings_transactions ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Anon Full Access Users" ON public.app_users;
 CREATE POLICY "Anon Full Access Users" ON public.app_users FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
@@ -88,6 +118,12 @@ CREATE POLICY "Anon Full Access Savings" ON public.savings_transactions FOR ALL 
 
 DROP POLICY IF EXISTS "Anon Full Access Parking" ON public.parking_logs;
 CREATE POLICY "Anon Full Access Parking" ON public.parking_logs FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Anon Full Access Teachers" ON public.teachers;
+CREATE POLICY "Anon Full Access Teachers" ON public.teachers FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Anon Full Access Teacher Savings" ON public.teacher_savings_transactions;
+CREATE POLICY "Anon Full Access Teacher Savings" ON public.teacher_savings_transactions FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 -- Realtime
 DO $$
