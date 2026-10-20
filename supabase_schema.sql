@@ -78,6 +78,10 @@ CREATE INDEX IF NOT EXISTS idx_savings_date ON public.savings_transactions(date)
 CREATE INDEX IF NOT EXISTS idx_parking_date ON public.parking_logs(date);
 CREATE INDEX IF NOT EXISTS idx_students_class ON public.students(class);
 CREATE INDEX IF NOT EXISTS idx_students_name ON public.students(name);
+CREATE INDEX IF NOT EXISTS idx_teachers_nip ON public.teachers(nip);
+CREATE INDEX IF NOT EXISTS idx_teachers_name ON public.teachers(name);
+CREATE INDEX IF NOT EXISTS idx_teacher_savings_nip ON public.teacher_savings_transactions(teacher_nip);
+CREATE INDEX IF NOT EXISTS idx_teacher_savings_date ON public.teacher_savings_transactions(date);
 
 -- ==============================================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
