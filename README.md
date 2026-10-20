@@ -1,6 +1,6 @@
-# 💳 EduVault • Tabungan Siswa & Retribusi Parkir
+# 💳 Aplikasi Tabungan SMK Assalaam • Tabungan & Retribusi Parkir
 
-Aplikasi web modern untuk pengelolaan transaksi tabungan siswa dan retribusi parkir harian sekolah. Aplikasi ini sudah dilengkapi dengan antarmuka modern yang responsif, visualisasi grafik interaktif, ekspor/impor Excel, modul cetak buku tabungan resmi, serta **konektor database Supabase (PostgreSQL Cloud)**.
+Aplikasi web modern untuk pengelolaan transaksi tabungan siswa, tabungan guru & karyawan, dan retribusi parkir harian SMK Assalaam. Aplikasi ini sudah dilengkapi dengan antarmuka modern yang responsif, visualisasi grafik interaktif, ekspor/impor Excel, modul cetak buku tabungan resmi, serta **konektor database Supabase (PostgreSQL Cloud)**.
 
 ---
 
@@ -70,8 +70,8 @@ Aplikasi web modern untuk pengelolaan transaksi tabungan siswa dan retribusi par
    - **Project URL** (contoh: `https://xyzabcdef.supabase.co`)
    - **anon / public key** (kunci panjang yang diawali `eyJ...`)
 
-### Langkah 3: Masukkan ke Aplikasi EduVault
-1. Buka aplikasi **EduVault** di browser Anda.
+### Langkah 3: Masukkan ke Aplikasi Tabungan SMK Assalaam
+1. Buka aplikasi **Aplikasi Tabungan SMK Assalaam** di browser Anda.
 2. Klik tombol **"Hubungkan Supabase"** di header atas atau menu **"Supabase Hub"** di sidebar.
 3. Masukkan Project URL dan Anon Key Anda.
 4. Klik **"Tes Koneksi"**, lalu klik **"Simpan & Hubungkan"**.
