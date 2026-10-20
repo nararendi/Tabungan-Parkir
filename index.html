@@ -1646,14 +1646,18 @@
                     </div>
 
                     <!-- Tab Buttons -->
-                    <div class="flex items-center bg-slate-100/90 p-1 rounded-xl border border-slate-200/80">
-                        <button type="button" id="tabBtnUsers" onclick="switchSettingsTab('users')" class="px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white text-slate-900 shadow-sm flex items-center gap-2 cursor-pointer">
+                    <div class="flex items-center bg-slate-100/90 p-1 rounded-xl border border-slate-200/80 flex-wrap gap-1">
+                        <button type="button" id="tabBtnUsers" onclick="switchSettingsTab('users')" class="px-3.5 py-2 rounded-lg text-xs font-bold transition-all bg-white text-slate-900 shadow-sm flex items-center gap-2 cursor-pointer">
                             <i data-lucide="users" class="w-3.5 h-3.5 text-brand-600"></i>
                             <span>Pengaturan Pengguna</span>
                         </button>
-                        <button type="button" id="tabBtnDatabase" onclick="switchSettingsTab('database')" class="px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-2 cursor-pointer">
+                        <button type="button" id="tabBtnDatabase" onclick="switchSettingsTab('database')" class="px-3.5 py-2 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-2 cursor-pointer">
                             <i data-lucide="database" class="w-3.5 h-3.5 text-emerald-600"></i>
                             <span>Database Cloud (Supabase)</span>
+                        </button>
+                        <button type="button" id="tabBtnSpreadsheet" onclick="switchSettingsTab('spreadsheet')" class="px-3.5 py-2 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-2 cursor-pointer">
+                            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-emerald-600"></i>
+                            <span>Backup Google Spreadsheet</span>
                         </button>
                     </div>
                 </div>
@@ -1799,6 +1803,117 @@
                                 <span class="w-7 h-7 rounded-lg bg-brand-600 text-white font-extrabold text-xs flex items-center justify-center">4</span>
                                 <h5 class="font-extrabold text-slate-900 pt-1">Simpan di Aplikasi</h5>
                                 <p class="text-[11px] text-slate-500 leading-relaxed">Tempelkan URL dan API Key ke formulir di atas, lalu klik <strong>Simpan & Hubungkan Database</strong>. Status akan otomatis berubah menjadi <strong>Terhubung (Cloud)</strong>.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-TAB 3: PENGATURAN GOOGLE SPREADSHEET (BACKUP) -->
+                <div id="settingsTabSpreadsheet" class="hidden space-y-6">
+                    <!-- Status & Connection Card -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                                    <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-extrabold text-slate-900">Integrasi Google Spreadsheet (Cloud Backup API)</h4>
+                                    <p class="text-xs text-slate-500">Hubungkan web app ke API Google Spreadsheet (Apps Script Web App) untuk backup data ganda otomatis</p>
+                                </div>
+                            </div>
+                            <div id="settingsSheetBadge" class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" id="settingsSheetStatusDot"></span>
+                                <span id="settingsSheetStatusText">Spreadsheet Belum Terhubung</span>
+                            </div>
+                        </div>
+
+                        <!-- Form Koneksi Spreadsheet -->
+                        <form id="settingsSpreadsheetForm" onsubmit="handleSaveSpreadsheetConfig(event)" class="space-y-4 pt-1">
+                            <div class="grid grid-cols-1 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+                                        <span>Google Apps Script Web App / API URL *</span>
+                                        <span class="text-[10px] text-slate-400 font-normal">Contoh: https://script.google.com/macros/s/.../exec</span>
+                                    </label>
+                                    <div class="relative">
+                                        <i data-lucide="link" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
+                                        <input type="url" id="settingSpreadsheetUrl" required placeholder="https://script.google.com/macros/s/AKfycb.../exec" class="w-full text-xs pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none font-mono font-semibold">
+                                    </div>
+                                    <p class="text-[11px] text-slate-400 mt-1">URL deployment Web App Google Apps Script dari spreadsheet Anda (Who has access: <em>Anyone</em>).</p>
+                                </div>
+
+                                <div class="flex items-center gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                                    <input type="checkbox" id="settingSpreadsheetAutoSync" checked class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer">
+                                    <label for="settingSpreadsheetAutoSync" class="text-xs font-bold text-slate-700 cursor-pointer">
+                                        Otomatis kirim backup ke Google Spreadsheet setiap ada transaksi baru (Setoran, Penarikan, Parkir, Data Siswa/Guru)
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <button type="button" onclick="testSpreadsheetConnection()" id="btnTestSpreadsheet" class="px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer">
+                                        <i data-lucide="activity" class="w-3.5 h-3.5"></i>
+                                        <span>Uji Koneksi API</span>
+                                    </button>
+                                    <button type="submit" id="btnSaveSpreadsheet" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-md shadow-emerald-600/20 cursor-pointer">
+                                        <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                                        <span>Simpan Pengaturan Spreadsheet</span>
+                                    </button>
+                                    <button type="button" onclick="syncAllToSpreadsheet()" id="btnSyncAllSpreadsheet" class="px-4 py-2.5 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm cursor-pointer" title="Kirim seluruh data siswa, transaksi, dan parkir saat ini ke Google Spreadsheet">
+                                        <i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i>
+                                        <span>Kirim Semua Data (Full Backup)</span>
+                                    </button>
+                                </div>
+
+                                <div class="flex items-center gap-2">
+                                    <button type="button" onclick="disconnectSpreadsheet()" id="btnDisconnectSpreadsheet" class="px-4 py-2.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer">
+                                        <i data-lucide="unlink" class="w-3.5 h-3.5"></i>
+                                        <span>Putus Koneksi</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Step-by-Step Instructions & Apps Script Code Guide -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                            <div>
+                                <h4 class="text-sm font-extrabold text-slate-900">Format Payload & Contoh Skrip Google Apps Script</h4>
+                                <p class="text-xs text-slate-500">Gunakan kode ini di Google Apps Script jika Anda ingin spreadsheet otomatis mencatat sheet secara rapi</p>
+                            </div>
+                            <button onclick="copyAppsScriptCode()" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-black text-white font-bold text-xs flex items-center gap-1.5 shadow-sm cursor-pointer self-start sm:self-auto">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                <span id="copyAppsScriptBtnText">Salin Kode Apps Script</span>
+                            </button>
+                        </div>
+
+                        <!-- 4 Step guide -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
+                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1.5">
+                                <span class="w-7 h-7 rounded-lg bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center">1</span>
+                                <h5 class="font-extrabold text-slate-900 pt-1">Buka Spreadsheet</h5>
+                                <p class="text-[11px] text-slate-500 leading-relaxed">Buka Google Spreadsheet yang ingin Anda jadikan tujuan backup di Google Drive.</p>
+                            </div>
+
+                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1.5">
+                                <span class="w-7 h-7 rounded-lg bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center">2</span>
+                                <h5 class="font-extrabold text-slate-900 pt-1">Apps Script</h5>
+                                <p class="text-[11px] text-slate-500 leading-relaxed">Klik menu <strong>Extensions (Ekstensi)</strong> > <strong>Apps Script</strong>. Buat fungsi <code>doPost(e)</code> untuk menerima data.</p>
+                            </div>
+
+                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1.5">
+                                <span class="w-7 h-7 rounded-lg bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center">3</span>
+                                <h5 class="font-extrabold text-slate-900 pt-1">Deploy Web App</h5>
+                                <p class="text-[11px] text-slate-500 leading-relaxed">Klik <strong>Deploy > New Deployment</strong>. Pilih jenis <strong>Web App</strong>, Who has access: <strong>Anyone (Siapa saja)</strong>.</p>
+                            </div>
+
+                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1.5">
+                                <span class="w-7 h-7 rounded-lg bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center">4</span>
+                                <h5 class="font-extrabold text-slate-900 pt-1">Tempel Web App URL</h5>
+                                <p class="text-[11px] text-slate-500 leading-relaxed">Salin URL Web App yang berakhiran <code>/exec</code>, tempelkan ke formulir di atas lalu klik Simpan.</p>
                             </div>
                         </div>
                     </div>
@@ -2492,6 +2607,7 @@
         const STORAGE_KEY_PARKING = 'eduvault_data_parking';
         const STORAGE_KEY_USERS = 'eduvault_data_users';
         const STORAGE_KEY_SESSION = 'eduvault_active_session';
+        const STORAGE_KEY_SPREADSHEET = 'eduvault_data_spreadsheet_config';
 
         const ITEMS_PER_PAGE = 10;
         let currentPageSavings = 1;
@@ -3148,6 +3264,7 @@
             if (sectionId === 'settings') {
                 renderUsers();
                 populateSettingsDatabaseForm();
+                populateSettingsSpreadsheetForm();
             }
 
             // Close mobile sidebar if open
@@ -4627,6 +4744,9 @@
                 }
             }
 
+            // Push backup ke Google Spreadsheet jika aktif
+            backupToSpreadsheet('student_savings', newTx);
+
             document.getElementById('savingsForm').reset();
             setupDateInputs();
             setSavingsType('SETOR');
@@ -5025,6 +5145,9 @@
                 }
             }
 
+            // Push backup ke Google Spreadsheet jika aktif
+            backupToSpreadsheet('teacher_savings', newTx);
+
             document.getElementById('teacherSavingsForm').reset();
             setupDateInputs();
             setTeacherSavingsType('SETOR');
@@ -5405,6 +5528,9 @@
                         console.warn('Supabase insert teacher error:', err);
                     }
                 }
+
+                // Push backup ke Google Spreadsheet jika aktif
+                backupToSpreadsheet('teacher_add', newTeacher);
 
                 showToast(`Guru / Karyawan ${newTeacher.name} berhasil ditambahkan!`, 'success');
             }
@@ -5822,6 +5948,9 @@
                     console.warn('Supabase parking insert error:', e);
                 }
             }
+
+            // Push backup ke Google Spreadsheet jika aktif
+            backupToSpreadsheet('parking', newLog);
 
             document.getElementById('parkingForm').reset();
             setupDateInputs();
@@ -6264,6 +6393,9 @@
                         console.warn('Supabase insert student error:', e);
                     }
                 }
+
+                // Push backup ke Google Spreadsheet jika aktif
+                backupToSpreadsheet('student_add', newStud);
             }
 
             saveDataToLocal();
@@ -7988,29 +8120,28 @@
         function switchSettingsTab(tabName) {
             const btnUsers = document.getElementById('tabBtnUsers');
             const btnDb = document.getElementById('tabBtnDatabase');
+            const btnSheet = document.getElementById('tabBtnSpreadsheet');
             const contentUsers = document.getElementById('settingsTabUsers');
             const contentDb = document.getElementById('settingsTabDatabase');
+            const contentSheet = document.getElementById('settingsTabSpreadsheet');
+
+            const activeClass = 'px-3.5 py-2 rounded-lg text-xs font-bold transition-all bg-white text-slate-900 shadow-sm flex items-center gap-2 cursor-pointer';
+            const inactiveClass = 'px-3.5 py-2 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-2 cursor-pointer';
+
+            if (btnUsers) btnUsers.className = tabName === 'users' ? activeClass : inactiveClass;
+            if (btnDb) btnDb.className = tabName === 'database' ? activeClass : inactiveClass;
+            if (btnSheet) btnSheet.className = tabName === 'spreadsheet' ? activeClass : inactiveClass;
+
+            if (contentUsers) contentUsers.classList.toggle('hidden', tabName !== 'users');
+            if (contentDb) contentDb.classList.toggle('hidden', tabName !== 'database');
+            if (contentSheet) contentSheet.classList.toggle('hidden', tabName !== 'spreadsheet');
 
             if (tabName === 'users') {
-                if (btnUsers) {
-                    btnUsers.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white text-slate-900 shadow-sm flex items-center gap-2 cursor-pointer';
-                }
-                if (btnDb) {
-                    btnDb.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-2 cursor-pointer';
-                }
-                if (contentUsers) contentUsers.classList.remove('hidden');
-                if (contentDb) contentDb.classList.add('hidden');
                 renderUsers();
-            } else {
-                if (btnDb) {
-                    btnDb.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white text-slate-900 shadow-sm flex items-center gap-2 cursor-pointer';
-                }
-                if (btnUsers) {
-                    btnUsers.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-slate-900 flex items-center gap-2 cursor-pointer';
-                }
-                if (contentDb) contentDb.classList.remove('hidden');
-                if (contentUsers) contentUsers.classList.add('hidden');
+            } else if (tabName === 'database') {
                 populateSettingsDatabaseForm();
+            } else if (tabName === 'spreadsheet') {
+                populateSettingsSpreadsheetForm();
             }
             safeLucide();
         }
@@ -8140,6 +8271,357 @@ window.EDUVAULT_DEFAULT_CONFIG = {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             showToast('File supabase-config.js berhasil diunduh! Gantikan file di proyek lalu deploy/push ke Git.', 'success');
+        }
+
+        // ==========================================
+        // 10.B GOOGLE SPREADSHEET BACKUP INTEGRATION
+        // ==========================================
+        function getSpreadsheetConfig() {
+            try {
+                return JSON.parse(localStorage.getItem(STORAGE_KEY_SPREADSHEET) || '{"url":"","autoSync":true,"lastSync":""}');
+            } catch (e) {
+                return { url: '', autoSync: true, lastSync: '' };
+            }
+        }
+
+        function saveSpreadsheetConfig(cfg) {
+            localStorage.setItem(STORAGE_KEY_SPREADSHEET, JSON.stringify(cfg));
+        }
+
+        function isSpreadsheetConfigured() {
+            const cfg = getSpreadsheetConfig();
+            return Boolean(cfg && cfg.url && cfg.url.startsWith('http'));
+        }
+
+        function populateSettingsSpreadsheetForm() {
+            const cfg = getSpreadsheetConfig();
+            const urlInput = document.getElementById('settingSpreadsheetUrl');
+            const autoSyncInput = document.getElementById('settingSpreadsheetAutoSync');
+            if (urlInput) urlInput.value = cfg.url || '';
+            if (autoSyncInput) autoSyncInput.checked = cfg.autoSync !== false;
+
+            const statusDot = document.getElementById('settingsSheetStatusDot');
+            const statusText = document.getElementById('settingsSheetStatusText');
+            const badge = document.getElementById('settingsSheetBadge');
+
+            if (isSpreadsheetConfigured()) {
+                if (statusDot) statusDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500';
+                if (statusText) statusText.innerText = cfg.lastSync ? `Terhubung (Sinkron: ${cfg.lastSync})` : 'Terhubung ke Google Spreadsheet';
+                if (badge) badge.className = 'flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200';
+            } else {
+                if (statusDot) statusDot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse';
+                if (statusText) statusText.innerText = 'Spreadsheet Belum Terhubung';
+                if (badge) badge.className = 'flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200';
+            }
+        }
+
+        function handleSaveSpreadsheetConfig(e) {
+            e.preventDefault();
+            const url = document.getElementById('settingSpreadsheetUrl').value.trim();
+            const autoSync = document.getElementById('settingSpreadsheetAutoSync').checked;
+
+            if (!url || !url.startsWith('http')) {
+                showToast('URL Google Spreadsheet Web App tidak valid!', 'error');
+                return;
+            }
+
+            const current = getSpreadsheetConfig();
+            current.url = url;
+            current.autoSync = autoSync;
+            saveSpreadsheetConfig(current);
+
+            populateSettingsSpreadsheetForm();
+            showToast('Pengaturan Google Spreadsheet berhasil disimpan!', 'success');
+        }
+
+        async function testSpreadsheetConnection() {
+            const urlInput = document.getElementById('settingSpreadsheetUrl');
+            const url = urlInput ? urlInput.value.trim() : '';
+
+            if (!url || !url.startsWith('http')) {
+                showToast('Masukkan URL Web App Google Spreadsheet terlebih dahulu!', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('btnTestSpreadsheet');
+            const orig = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Menguji API...</span>';
+                safeLucide();
+            }
+
+            try {
+                await fetch(url, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'ping',
+                        timestamp: new Date().toISOString(),
+                        appName: 'Aplikasi Tabungan SMK Assalaam'
+                    })
+                });
+
+                const cfg = getSpreadsheetConfig();
+                cfg.url = url;
+                cfg.lastSync = new Date().toLocaleString('id-ID');
+                saveSpreadsheetConfig(cfg);
+                populateSettingsSpreadsheetForm();
+
+                showToast('Koneksi ke Google Spreadsheet API berhasil terjangkau!', 'success');
+            } catch (err) {
+                showToast(`Gagal terhubung ke URL Spreadsheet: ${err.message || 'Periksa koneksi internet'}`, 'error');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = orig;
+                    safeLucide();
+                }
+            }
+        }
+
+        async function syncAllToSpreadsheet() {
+            const cfg = getSpreadsheetConfig();
+            if (!cfg.url || !cfg.url.startsWith('http')) {
+                showToast('Harap simpan URL Google Spreadsheet Web App terlebih dahulu!', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('btnSyncAllSpreadsheet');
+            const orig = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Mengirim Full Backup...</span>';
+                safeLucide();
+            }
+
+            try {
+                const payload = {
+                    action: 'full_backup',
+                    timestamp: new Date().toISOString(),
+                    appName: 'Aplikasi Tabungan SMK Assalaam',
+                    summary: {
+                        totalStudents: students.length,
+                        totalSavingsTransactions: savingsTransactions.length,
+                        totalTeachers: teachers.length,
+                        totalTeacherTransactions: teacherSavingsTransactions.length,
+                        totalParkingLogs: parkingLogs.length
+                    },
+                    students: students,
+                    savingsTransactions: savingsTransactions,
+                    teachers: teachers,
+                    teacherSavingsTransactions: teacherSavingsTransactions,
+                    parkingLogs: parkingLogs
+                };
+
+                await fetch(cfg.url, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                cfg.lastSync = new Date().toLocaleString('id-ID');
+                saveSpreadsheetConfig(cfg);
+                populateSettingsSpreadsheetForm();
+
+                showToast('Seluruh data (Siswa, Transaksi, Guru, Parkir) berhasil dikirim ke Google Spreadsheet!', 'success');
+            } catch (err) {
+                showToast(`Gagal mengirim data ke Spreadsheet: ${err.message}`, 'error');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = orig;
+                    safeLucide();
+                }
+            }
+        }
+
+        function disconnectSpreadsheet() {
+            openConfirmModal('Putus Koneksi Spreadsheet', 'Apakah Anda yakin ingin memutuskan integrasi dengan Google Spreadsheet? Aplikasi akan berhenti mengirim backup otomatis ke spreadsheet.', () => {
+                localStorage.removeItem(STORAGE_KEY_SPREADSHEET);
+                const urlInput = document.getElementById('settingSpreadsheetUrl');
+                if (urlInput) urlInput.value = '';
+                populateSettingsSpreadsheetForm();
+                showToast('Koneksi Google Spreadsheet berhasil diputuskan.', 'info');
+            });
+        }
+
+        async function sendSpreadsheetPayload(payload) {
+            const cfg = getSpreadsheetConfig();
+            if (!cfg.url || !cfg.url.startsWith('http')) return false;
+
+            try {
+                await fetch(cfg.url, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                cfg.lastSync = new Date().toLocaleString('id-ID');
+                saveSpreadsheetConfig(cfg);
+                return true;
+            } catch (err) {
+                console.warn('Gagal sinkron data ke Google Spreadsheet:', err);
+                return false;
+            }
+        }
+
+        function backupToSpreadsheet(action, data) {
+            const cfg = getSpreadsheetConfig();
+            if (!cfg.url || cfg.autoSync === false) return;
+
+            // Background async fire-and-forget
+            sendSpreadsheetPayload({
+                action: action,
+                data: data,
+                timestamp: new Date().toISOString(),
+                appName: 'Aplikasi Tabungan SMK Assalaam'
+            }).then(success => {
+                if (success) {
+                    console.log(`[Spreadsheet Backup] Sukses mengirim ${action}`);
+                }
+            });
+        }
+
+        function copyAppsScriptCode() {
+            const code = `// ==============================================================
+// GOOGLE APPS SCRIPT: PENERIMA BACKUP TABUNGAN SMK ASSALAAM
+// ==============================================================
+// Petunjuk:
+// 1. Tempelkan kode ini di Extensions > Apps Script pada Google Sheet Anda
+// 2. Klik Deploy > New Deployment > Pilih Web App
+// 3. Description: "API Backup Tabungan"
+// 4. Execute as: "Me (Email Anda)"
+// 5. Who has access: "Anyone (Siapa saja)"
+// 6. Klik Deploy, Authorize access, dan salin Web App URL (akhiran /exec)
+// ==============================================================
+
+function doPost(e) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var payload = JSON.parse(e.postData.contents);
+    var action = payload.action;
+
+    // 1. Catat ke sheet LOG AKTIVITAS BACKUP
+    var logSheet = ss.getSheetByName("LOG_BACKUP") || ss.insertSheet("LOG_BACKUP");
+    if (logSheet.getLastRow() === 0) {
+      logSheet.appendRow(["Timestamp", "Aksi / Event", "Detail Data"]);
+      logSheet.getRange(1, 1, 1, 3).setFontWeight("bold").setBackground("#e2e8f0");
+    }
+    logSheet.appendRow([new Date(), action, JSON.stringify(payload.data || payload.summary || "OK")]);
+
+    // 2. Jika FULL BACKUP, sinkronkan semua sheet
+    if (action === "full_backup" || action === "sync_all") {
+      // TAB SISWA
+      if (payload.students && payload.students.length > 0) {
+        var sSheet = ss.getSheetByName("Data_Siswa") || ss.insertSheet("Data_Siswa");
+        sSheet.clear();
+        sSheet.appendRow(["NIS", "Nama Siswa", "Kelas", "Jurusan", "Jenis Kelamin", "Saldo Kas"]);
+        sSheet.getRange(1, 1, 1, 6).setFontWeight("bold").setBackground("#dcfce7");
+        payload.students.forEach(function(s) {
+          sSheet.appendRow([s.nis, s.name, s.class, s.major || '', s.jk || '', s.balance || 0]);
+        });
+      }
+
+      // TAB TRANSAKSI SISWA
+      if (payload.savingsTransactions && payload.savingsTransactions.length > 0) {
+        var txSheet = ss.getSheetByName("Transaksi_Siswa") || ss.insertSheet("Transaksi_Siswa");
+        txSheet.clear();
+        txSheet.appendRow(["ID Transaksi", "NIS", "Nama Siswa", "Tipe", "Nominal", "Tanggal", "Keterangan"]);
+        txSheet.getRange(1, 1, 1, 7).setFontWeight("bold").setBackground("#e0e7ff");
+        payload.savingsTransactions.forEach(function(t) {
+          txSheet.appendRow([t.id, t.studentNis, t.studentName, t.type, t.amount, t.date, t.note || '']);
+        });
+      }
+
+      // TAB GURU & KARYAWAN
+      if (payload.teachers && payload.teachers.length > 0) {
+        var tSheet = ss.getSheetByName("Data_Guru") || ss.insertSheet("Data_Guru");
+        tSheet.clear();
+        tSheet.appendRow(["NIP", "Nama Guru / Staf", "Jenis Kelamin", "Jabatan", "No HP", "Saldo Kas"]);
+        tSheet.getRange(1, 1, 1, 6).setFontWeight("bold").setBackground("#fef9c3");
+        payload.teachers.forEach(function(tg) {
+          tSheet.appendRow([tg.nip, tg.name, tg.jk || '', tg.role || '', tg.phone || '', tg.balance || 0]);
+        });
+      }
+
+      // TAB TRANSAKSI GURU
+      if (payload.teacherSavingsTransactions && payload.teacherSavingsTransactions.length > 0) {
+        var tTxSheet = ss.getSheetByName("Transaksi_Guru") || ss.insertSheet("Transaksi_Guru");
+        tTxSheet.clear();
+        tTxSheet.appendRow(["ID Transaksi", "NIP", "Nama Guru / Staf", "Tipe", "Nominal", "Tanggal", "Keterangan"]);
+        tTxSheet.getRange(1, 1, 1, 7).setFontWeight("bold").setBackground("#fae8ff");
+        payload.teacherSavingsTransactions.forEach(function(tt) {
+          tTxSheet.appendRow([tt.id, tt.teacherNip, tt.teacherName, tt.type, tt.amount, tt.date, tt.note || '']);
+        });
+      }
+
+      // TAB REKAP PARKIR
+      if (payload.parkingLogs && payload.parkingLogs.length > 0) {
+        var pSheet = ss.getSheetByName("Rekap_Parkir") || ss.insertSheet("Rekap_Parkir");
+        pSheet.clear();
+        pSheet.appendRow(["ID Parkir", "Tanggal", "Penerimaan Retribusi", "Pengeluaran", "Keterangan"]);
+        pSheet.getRange(1, 1, 1, 5).setFontWeight("bold").setBackground("#ffedd5");
+        payload.parkingLogs.forEach(function(p) {
+          pSheet.appendRow([p.id, p.date, p.amount || 0, p.expense || 0, p.note || '']);
+        });
+      }
+    }
+
+    // 3. Jika Transaksi Baru Satuan (Realtime Backup)
+    if (action === "student_savings" && payload.data) {
+      var d = payload.data;
+      var txSheet = ss.getSheetByName("Transaksi_Siswa") || ss.insertSheet("Transaksi_Siswa");
+      if (txSheet.getLastRow() === 0) {
+        txSheet.appendRow(["ID Transaksi", "NIS", "Nama Siswa", "Tipe", "Nominal", "Tanggal", "Keterangan"]);
+        txSheet.getRange(1, 1, 1, 7).setFontWeight("bold").setBackground("#e0e7ff");
+      }
+      txSheet.appendRow([d.id, d.studentNis, d.studentName, d.type, d.amount, d.date, d.note || '']);
+    }
+
+    if (action === "teacher_savings" && payload.data) {
+      var d = payload.data;
+      var tTxSheet = ss.getSheetByName("Transaksi_Guru") || ss.insertSheet("Transaksi_Guru");
+      if (tTxSheet.getLastRow() === 0) {
+        tTxSheet.appendRow(["ID Transaksi", "NIP", "Nama Guru / Staf", "Tipe", "Nominal", "Tanggal", "Keterangan"]);
+        tTxSheet.getRange(1, 1, 1, 7).setFontWeight("bold").setBackground("#fae8ff");
+      }
+      tTxSheet.appendRow([d.id, d.teacherNip, d.teacherName, d.type, d.amount, d.date, d.note || '']);
+    }
+
+    if (action === "parking" && payload.data) {
+      var d = payload.data;
+      var pSheet = ss.getSheetByName("Rekap_Parkir") || ss.insertSheet("Rekap_Parkir");
+      if (pSheet.getLastRow() === 0) {
+        pSheet.appendRow(["ID Parkir", "Tanggal", "Penerimaan Retribusi", "Pengeluaran", "Keterangan"]);
+        pSheet.getRange(1, 1, 1, 5).setFontWeight("bold").setBackground("#ffedd5");
+      }
+      pSheet.appendRow([d.id, d.date, d.amount || 0, d.expense || 0, d.note || '']);
+    }
+
+    return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Data tercatat di Spreadsheet" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({ status: "error", error: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}`;
+
+            navigator.clipboard.writeText(code).then(() => {
+                showToast('Skrip Google Apps Script berhasil disalin ke clipboard!', 'success');
+                const btnText = document.getElementById('copyAppsScriptBtnText');
+                if (btnText) {
+                    btnText.innerText = '✅ Skrip Berhasil Disalin!';
+                    setTimeout(() => {
+                        btnText.innerText = 'Salin Kode Apps Script';
+                    }, 3000);
+                }
+            }).catch(() => {
+                showToast('Gagal menyalin kode, silakan salin manual.', 'error');
+            });
         }
 
         function renderUsers() {
