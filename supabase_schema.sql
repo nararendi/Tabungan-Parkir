@@ -1,12 +1,6 @@
 -- ==============================================================================
 -- TABUNGAN SISWA & RETRIBUSI PARKIR SEKOLAH (EDUNAULT)
--- SUPABASE POSTGRESQL DATABASE SCHEMA
--- ==============================================================================
--- CARA PENGGUNAAN:
--- 1. Buka Dashboard Supabase Anda (https://supabase.com/dashboard)
--- 2. Pilih project Anda, lalu buka menu "SQL Editor" di bilah navigasi kiri.
--- 3. Buat "New Query", salin seluruh isi file ini, lalu klik tombol "RUN".
--- 4. Semua tabel, relasi, index, dan kebijakan RLS akan langsung siap (bersih tanpa data dummy)!
+-- VERSI AMAN: TIDAK MENGHAPUS DATA YANG SUDAH ADA
 -- ==============================================================================
 
 -- 1. TABEL PENGGUNA SISTEM (USERS & ADMIN)
@@ -19,16 +13,16 @@ CREATE TABLE IF NOT EXISTS public.app_users (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- JIKA TABEL SUDAH ADA SEBELUMNYA: Lepas constraint lama & pasang constraint baru
+-- Perbaiki constraint role TANPA hapus data
 ALTER TABLE public.app_users DROP CONSTRAINT IF EXISTS app_users_role_check;
 ALTER TABLE public.app_users ADD CONSTRAINT app_users_role_check 
     CHECK (role IN ('super_admin', 'user', 'Admin', 'Petugas'));
 
--- Migrasi role lama ke format baru jika ada
+-- Perbarui role lama HANYA kalau ada yang cocok
 UPDATE public.app_users SET role = 'super_admin' WHERE role = 'Admin';
 UPDATE public.app_users SET role = 'user' WHERE role = 'Petugas';
 
--- AKUN DEFAULT SUPER ADMIN (Tanpa data dummy, hanya akun utama untuk login)
+-- Akun admin — tambah/hanya perbarui kalau belum ada, TIDAK hapus pengguna lain
 INSERT INTO public.app_users (id, name, username, password, role)
 VALUES ('usr_superadmin', 'Super Administrator', 'admin', 'admin123', 'super_admin')
 ON CONFLICT (username) DO UPDATE 
@@ -36,7 +30,7 @@ SET role = 'super_admin',
     name = EXCLUDED.name,
     password = EXCLUDED.password;
 
--- 2. TABEL DATA SISWA
+-- 2. TABEL DATA SISWA — buat kalau belum ada, TIDAK kosongkan isinya
 CREATE TABLE IF NOT EXISTS public.students (
     id TEXT PRIMARY KEY DEFAULT ('std_' || gen_random_uuid()::text),
     nis TEXT UNIQUE NOT NULL,
@@ -48,7 +42,7 @@ CREATE TABLE IF NOT EXISTS public.students (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 3. TABEL TRANSAKSI TABUNGAN SISWA
+-- 3. TABEL TRANSAKSI TABUNGAN
 CREATE TABLE IF NOT EXISTS public.savings_transactions (
     id TEXT PRIMARY KEY DEFAULT ('tx_' || gen_random_uuid()::text),
     student_nis TEXT NOT NULL REFERENCES public.students(nis) ON UPDATE CASCADE ON DELETE CASCADE,
@@ -60,7 +54,7 @@ CREATE TABLE IF NOT EXISTS public.savings_transactions (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 4. TABEL REKAPITULASI RETRIBUSI PARKIR HARIAN
+-- 4. TABEL REKAP PARKIR
 CREATE TABLE IF NOT EXISTS public.parking_logs (
     id TEXT PRIMARY KEY DEFAULT ('prk_' || gen_random_uuid()::text),
     date DATE NOT NULL DEFAULT CURRENT_DATE,
@@ -70,145 +64,51 @@ CREATE TABLE IF NOT EXISTS public.parking_logs (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 5. TABEL DATA GURU & KARYAWAN
-CREATE TABLE IF NOT EXISTS public.teachers (
-    id TEXT PRIMARY KEY DEFAULT ('tch_' || gen_random_uuid()::text),
-    nip TEXT UNIQUE NOT NULL,
-    name TEXT NOT NULL,
-    jk TEXT CHECK (jk IN ('L', 'P')) DEFAULT 'L',
-    role TEXT NOT NULL DEFAULT 'Guru',
-    phone TEXT DEFAULT '',
-    balance NUMERIC DEFAULT 0,
-    created_at TIMESTAMPTZ DEFAULT now()
-);
-
--- 6. TABEL TRANSAKSI TABUNGAN GURU & KARYAWAN
-CREATE TABLE IF NOT EXISTS public.teacher_savings_transactions (
-    id TEXT PRIMARY KEY DEFAULT ('tx_tch_' || gen_random_uuid()::text),
-    teacher_nip TEXT NOT NULL REFERENCES public.teachers(nip) ON UPDATE CASCADE ON DELETE CASCADE,
-    teacher_name TEXT NOT NULL,
-    type TEXT CHECK (type IN ('SETOR', 'TARIK')) NOT NULL,
-    amount NUMERIC NOT NULL CHECK (amount > 0),
-    date DATE NOT NULL DEFAULT CURRENT_DATE,
-    note TEXT DEFAULT '',
-    created_at TIMESTAMPTZ DEFAULT now()
-);
-
--- ==============================================================================
--- INDEXES UNTUK PERFORMA QUERY CEPAT
--- ==============================================================================
+-- Indexes — tambah kalau belum ada
 CREATE INDEX IF NOT EXISTS idx_savings_student_nis ON public.savings_transactions(student_nis);
 CREATE INDEX IF NOT EXISTS idx_savings_date ON public.savings_transactions(date);
 CREATE INDEX IF NOT EXISTS idx_parking_date ON public.parking_logs(date);
 CREATE INDEX IF NOT EXISTS idx_students_class ON public.students(class);
 CREATE INDEX IF NOT EXISTS idx_students_name ON public.students(name);
-CREATE INDEX IF NOT EXISTS idx_teachers_nip ON public.teachers(nip);
-CREATE INDEX IF NOT EXISTS idx_teachers_name ON public.teachers(name);
-CREATE INDEX IF NOT EXISTS idx_teacher_savings_nip ON public.teacher_savings_transactions(teacher_nip);
-CREATE INDEX IF NOT EXISTS idx_teacher_savings_date ON public.teacher_savings_transactions(date);
 
--- ==============================================================================
--- ROW LEVEL SECURITY (RLS) POLICIES
--- Kebijakan ini memungkinkan aplikasi web mengakses data menggunakan Anon Key
--- ==============================================================================
+-- RLS Policies
 ALTER TABLE public.app_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.students ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.savings_transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.parking_logs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.teacher_savings_transactions ENABLE ROW LEVEL SECURITY;
 
--- Policy untuk app_users
 DROP POLICY IF EXISTS "Anon Full Access Users" ON public.app_users;
-CREATE POLICY "Anon Full Access Users" ON public.app_users 
-    FOR ALL TO anon, authenticated 
-    USING (true) WITH CHECK (true);
+CREATE POLICY "Anon Full Access Users" ON public.app_users FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
--- Policy untuk students
 DROP POLICY IF EXISTS "Anon Full Access Students" ON public.students;
-CREATE POLICY "Anon Full Access Students" ON public.students 
-    FOR ALL TO anon, authenticated 
-    USING (true) WITH CHECK (true);
+CREATE POLICY "Anon Full Access Students" ON public.students FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
--- Policy untuk savings_transactions
 DROP POLICY IF EXISTS "Anon Full Access Savings" ON public.savings_transactions;
-CREATE POLICY "Anon Full Access Savings" ON public.savings_transactions 
-    FOR ALL TO anon, authenticated 
-    USING (true) WITH CHECK (true);
+CREATE POLICY "Anon Full Access Savings" ON public.savings_transactions FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
--- Policy untuk parking_logs
 DROP POLICY IF EXISTS "Anon Full Access Parking" ON public.parking_logs;
-CREATE POLICY "Anon Full Access Parking" ON public.parking_logs 
-    FOR ALL TO anon, authenticated 
-    USING (true) WITH CHECK (true);
+CREATE POLICY "Anon Full Access Parking" ON public.parking_logs FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
--- Policy untuk teachers
-DROP POLICY IF EXISTS "Anon Full Access Teachers" ON public.teachers;
-CREATE POLICY "Anon Full Access Teachers" ON public.teachers 
-    FOR ALL TO anon, authenticated 
-    USING (true) WITH CHECK (true);
-
--- Policy untuk teacher_savings_transactions
-DROP POLICY IF EXISTS "Anon Full Access Teacher Savings" ON public.teacher_savings_transactions;
-CREATE POLICY "Anon Full Access Teacher Savings" ON public.teacher_savings_transactions 
-    FOR ALL TO anon, authenticated 
-    USING (true) WITH CHECK (true);
-
--- ==============================================================================
--- AKTIFKAN REALTIME NOTIFICATIONS (OPSIONAL / SINKRONISASI OTOMATIS)
--- ==============================================================================
+-- Realtime
 DO $$
 BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_publication_tables 
-        WHERE pubname = 'supabase_realtime' AND tablename = 'students'
-    ) THEN
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'students') THEN
         ALTER PUBLICATION supabase_realtime ADD TABLE public.students;
     END IF;
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_publication_tables 
-        WHERE pubname = 'supabase_realtime' AND tablename = 'savings_transactions'
-    ) THEN
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'savings_transactions') THEN
         ALTER PUBLICATION supabase_realtime ADD TABLE public.savings_transactions;
     END IF;
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_publication_tables 
-        WHERE pubname = 'supabase_realtime' AND tablename = 'parking_logs'
-    ) THEN
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'parking_logs') THEN
         ALTER PUBLICATION supabase_realtime ADD TABLE public.parking_logs;
     END IF;
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_publication_tables 
-        WHERE pubname = 'supabase_realtime' AND tablename = 'app_users'
-    ) THEN
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'app_users') THEN
         ALTER PUBLICATION supabase_realtime ADD TABLE public.app_users;
-    END IF;
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_publication_tables 
-        WHERE pubname = 'supabase_realtime' AND tablename = 'teachers'
-    ) THEN
-        ALTER PUBLICATION supabase_realtime ADD TABLE public.teachers;
-    END IF;
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_publication_tables 
-        WHERE pubname = 'supabase_realtime' AND tablename = 'teacher_savings_transactions'
-    ) THEN
-        ALTER PUBLICATION supabase_realtime ADD TABLE public.teacher_savings_transactions;
     END IF;
 END $$;
 
--- ==============================================================================
--- PEMBERSIHAN DATA DUMMY (MENGHAPUS SEMUA DATA DUMMY SEBELUMNYA DI SUPABASE)
--- ==============================================================================
--- Perintah ini memastikan database Supabase Anda bersih dari data dummy lama:
-TRUNCATE TABLE public.savings_transactions CASCADE;
-TRUNCATE TABLE public.parking_logs CASCADE;
-TRUNCATE TABLE public.students CASCADE;
-TRUNCATE TABLE public.teacher_savings_transactions CASCADE;
-TRUNCATE TABLE public.teachers CASCADE;
-DELETE FROM public.app_users WHERE username NOT IN ('admin');
+-- =============================================
+-- ⚠️ BAGIAN PENTING: Baris TRUNCATE dihapus!
+-- Datamu yang sudah ada TIDAK akan dihapus lagi
+-- =============================================
 
--- ==============================================================================
--- SKEMA DATABASE SIAP (BERSIH 100% TANPA DATA DUMMY)
--- Anda dapat mulai mengisi data langsung melalui antarmuka web EduVault!
--- ==============================================================================
+SELECT '✅ Skema diperbarui — Data AMAN! Silakan masukkan data yang hilang' AS status;
