@@ -4773,7 +4773,7 @@
             }
 
             // Push backup ke Google Spreadsheet jika aktif
-            backupToSpreadsheet('student_savings', newTx);
+            backupToSpreadsheet('student_savings', { ...newTx, currentBalance: student.balance });
 
             document.getElementById('savingsForm').reset();
             setupDateInputs();
@@ -5174,7 +5174,7 @@
             }
 
             // Push backup ke Google Spreadsheet jika aktif
-            backupToSpreadsheet('teacher_savings', newTx);
+            backupToSpreadsheet('teacher_savings', { ...newTx, currentBalance: teacher.balance });
 
             document.getElementById('teacherSavingsForm').reset();
             setupDateInputs();
@@ -5486,6 +5486,9 @@
                         }
                     }
 
+                    // Push backup update ke Google Spreadsheet jika aktif
+                    backupToSpreadsheet('teacher_update', tch);
+
                     showToast('Data guru / karyawan berhasil diperbarui!', 'success');
                 }
             } else {
@@ -5537,6 +5540,9 @@
                             console.warn('Supabase insert initial teacher savings error:', err);
                         }
                     }
+
+                    // Push backup transaksi setoran awal ke Google Spreadsheet jika aktif
+                    backupToSpreadsheet('teacher_savings', { ...initTx, currentBalance: initialBalance });
                 }
 
                 saveDataToLocal();
@@ -5586,6 +5592,9 @@
                 teachers = teachers.filter(t => t.nip !== nip);
                 teacherSavingsTransactions = teacherSavingsTransactions.filter(t => t.teacherNip !== nip);
                 saveDataToLocal();
+
+                // Push backup hapus ke Google Spreadsheet jika aktif
+                backupToSpreadsheet('teacher_delete', { nip: nip, name: tch.name });
 
                 if (supabaseClient) {
                     try {
@@ -6398,6 +6407,9 @@
                         console.warn('Supabase update student error:', e);
                     }
                 }
+
+                // Push backup update siswa ke Google Spreadsheet jika aktif
+                backupToSpreadsheet('student_update', student);
             } else {
                 if (students.some(s => s.nis === nis)) {
                     showToast('NIS sudah terdaftar!', 'error');
@@ -6440,6 +6452,9 @@
                 students = students.filter(s => s.id !== id);
                 savingsTransactions = savingsTransactions.filter(t => t.studentNis !== student.nis);
                 saveDataToLocal();
+
+                // Push backup hapus siswa ke Google Spreadsheet jika aktif
+                backupToSpreadsheet('student_delete', { nis: student.nis, name: student.name });
 
                 if (supabaseClient) {
                     try {
@@ -8383,7 +8398,7 @@ window.EDUVAULT_DEFAULT_CONFIG = {
                 await fetch(url, {
                     method: 'POST',
                     mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({
                         action: 'ping',
                         timestamp: new Date().toISOString(),
@@ -8613,7 +8628,87 @@ function doPost(e) {
       }
     }
 
-    // 3. Jika Transaksi Baru Satuan (Realtime Backup)
+    // 3. Tambah / Update Data Guru Realtime
+    if ((action === "teacher_add" || action === "teacher_update") && payload.data) {
+      var d = payload.data;
+      var tSheet = ss.getSheetByName("Data_Guru") || ss.insertSheet("Data_Guru");
+      if (tSheet.getLastRow() === 0) {
+        tSheet.appendRow(["NIP", "Nama Guru / Staf", "Jenis Kelamin", "Jabatan", "No HP", "Saldo Kas"]);
+        tSheet.getRange(1, 1, 1, 6).setFontWeight("bold").setBackground("#fef9c3");
+      }
+      var tData = tSheet.getDataRange().getValues();
+      var foundRow = -1;
+      var nipStr = String(d.nip || '').trim();
+      for (var r = 1; r < tData.length; r++) {
+        if (String(tData[r][0]).trim() === nipStr) {
+          foundRow = r + 1;
+          break;
+        }
+      }
+      var rowValues = [d.nip, d.name, d.jk || '', d.role || '', d.phone || '', d.balance !== undefined ? d.balance : 0];
+      if (foundRow > -1) {
+        tSheet.getRange(foundRow, 1, 1, 6).setValues([rowValues]);
+      } else {
+        tSheet.appendRow(rowValues);
+      }
+    }
+
+    // 4. Hapus Data Guru Realtime
+    if (action === "teacher_delete" && payload.data) {
+      var tSheet = ss.getSheetByName("Data_Guru");
+      if (tSheet && tSheet.getLastRow() > 1) {
+        var tData = tSheet.getDataRange().getValues();
+        var nipStr = String(payload.data.nip || '').trim();
+        for (var r = tData.length - 1; r >= 1; r--) {
+          if (String(tData[r][0]).trim() === nipStr) {
+            tSheet.deleteRow(r + 1);
+            break;
+          }
+        }
+      }
+    }
+
+    // 5. Tambah / Update Data Siswa Realtime
+    if ((action === "student_add" || action === "student_update") && payload.data) {
+      var d = payload.data;
+      var sSheet = ss.getSheetByName("Data_Siswa") || ss.insertSheet("Data_Siswa");
+      if (sSheet.getLastRow() === 0) {
+        sSheet.appendRow(["NIS", "Nama Siswa", "Kelas", "Jurusan", "Jenis Kelamin", "Saldo Kas"]);
+        sSheet.getRange(1, 1, 1, 6).setFontWeight("bold").setBackground("#dcfce7");
+      }
+      var sData = sSheet.getDataRange().getValues();
+      var foundRow = -1;
+      var nisStr = String(d.nis || '').trim();
+      for (var r = 1; r < sData.length; r++) {
+        if (String(sData[r][0]).trim() === nisStr) {
+          foundRow = r + 1;
+          break;
+        }
+      }
+      var rowValues = [d.nis, d.name, d.class || '', d.major || '', d.jk || '', d.balance !== undefined ? d.balance : 0];
+      if (foundRow > -1) {
+        sSheet.getRange(foundRow, 1, 1, 6).setValues([rowValues]);
+      } else {
+        sSheet.appendRow(rowValues);
+      }
+    }
+
+    // 6. Hapus Data Siswa Realtime
+    if (action === "student_delete" && payload.data) {
+      var sSheet = ss.getSheetByName("Data_Siswa");
+      if (sSheet && sSheet.getLastRow() > 1) {
+        var sData = sSheet.getDataRange().getValues();
+        var nisStr = String(payload.data.nis || '').trim();
+        for (var r = sData.length - 1; r >= 1; r--) {
+          if (String(sData[r][0]).trim() === nisStr) {
+            sSheet.deleteRow(r + 1);
+            break;
+          }
+        }
+      }
+    }
+
+    // 7. Transaksi Tabungan Siswa Realtime
     if (action === "student_savings" && payload.data) {
       var d = payload.data;
       var txSheet = ss.getSheetByName("Transaksi_Siswa") || ss.insertSheet("Transaksi_Siswa");
@@ -8622,8 +8717,24 @@ function doPost(e) {
         txSheet.getRange(1, 1, 1, 7).setFontWeight("bold").setBackground("#e0e7ff");
       }
       txSheet.appendRow([d.id, d.studentNis, d.studentName, d.type, d.amount, d.date, d.note || '']);
+
+      // Sinkronkan saldo terkini di Data_Siswa jika ada
+      var sSheet = ss.getSheetByName("Data_Siswa");
+      if (sSheet && sSheet.getLastRow() > 1) {
+        var sData = sSheet.getDataRange().getValues();
+        var nisStr = String(d.studentNis || '').trim();
+        for (var r = 1; r < sData.length; r++) {
+          if (String(sData[r][0]).trim() === nisStr) {
+            var newBal = (d.currentBalance !== undefined) ? d.currentBalance : 
+              (d.type === 'SETOR' ? (Number(sData[r][5]) || 0) + Number(d.amount) : (Number(sData[r][5]) || 0) - Number(d.amount));
+            sSheet.getRange(r + 1, 6).setValue(newBal);
+            break;
+          }
+        }
+      }
     }
 
+    // 8. Transaksi Tabungan Guru Realtime
     if (action === "teacher_savings" && payload.data) {
       var d = payload.data;
       var tTxSheet = ss.getSheetByName("Transaksi_Guru") || ss.insertSheet("Transaksi_Guru");
@@ -8632,8 +8743,24 @@ function doPost(e) {
         tTxSheet.getRange(1, 1, 1, 7).setFontWeight("bold").setBackground("#fae8ff");
       }
       tTxSheet.appendRow([d.id, d.teacherNip, d.teacherName, d.type, d.amount, d.date, d.note || '']);
+
+      // Sinkronkan saldo terkini di Data_Guru jika ada
+      var tSheet = ss.getSheetByName("Data_Guru");
+      if (tSheet && tSheet.getLastRow() > 1) {
+        var tData = tSheet.getDataRange().getValues();
+        var nipStr = String(d.teacherNip || '').trim();
+        for (var r = 1; r < tData.length; r++) {
+          if (String(tData[r][0]).trim() === nipStr) {
+            var newBal = (d.currentBalance !== undefined) ? d.currentBalance : 
+              (d.type === 'SETOR' ? (Number(tData[r][5]) || 0) + Number(d.amount) : (Number(tData[r][5]) || 0) - Number(d.amount));
+            tSheet.getRange(r + 1, 6).setValue(newBal);
+            break;
+          }
+        }
+      }
     }
 
+    // 9. Rekap Parkir Realtime
     if (action === "parking" && payload.data) {
       var d = payload.data;
       var pSheet = ss.getSheetByName("Rekap_Parkir") || ss.insertSheet("Rekap_Parkir");
