@@ -3027,19 +3027,47 @@
                     }
 
                     if (resTeachers && !resTeachers.error && Array.isArray(resTeachers.data)) {
-                        teachers = resTeachers.data;
+                        if (resTeachers.data.length > 0) {
+                            teachers = resTeachers.data;
+                        } else if (teachers && teachers.length > 0) {
+                            // Supabase baru saja dibuat skemanya dan masih kosong, unggah data guru lokal ke cloud!
+                            const tchPayload = teachers.map(t => ({
+                                id: t.id,
+                                nip: t.nip,
+                                name: t.name,
+                                jk: t.jk || 'L',
+                                role: t.role || 'Guru',
+                                phone: t.phone || '',
+                                balance: Number(t.balance || 0)
+                            }));
+                            supabaseClient.from('teachers').upsert(tchPayload, { onConflict: 'nip' }).catch(e => console.warn('Upload local teachers to cloud error:', e));
+                        }
                     }
 
                     if (resTeacherSavings && !resTeacherSavings.error && Array.isArray(resTeacherSavings.data)) {
-                        teacherSavingsTransactions = resTeacherSavings.data.map(t => ({
-                            id: t.id,
-                            teacherNip: t.teacher_nip || t.teacherNip,
-                            teacherName: t.teacher_name || t.teacherName,
-                            type: t.type,
-                            amount: Number(t.amount || 0),
-                            date: t.date,
-                            note: t.note || ''
-                        }));
+                        if (resTeacherSavings.data.length > 0) {
+                            teacherSavingsTransactions = resTeacherSavings.data.map(t => ({
+                                id: t.id,
+                                teacherNip: t.teacher_nip || t.teacherNip,
+                                teacherName: t.teacher_name || t.teacherName,
+                                type: t.type,
+                                amount: Number(t.amount || 0),
+                                date: t.date,
+                                note: t.note || ''
+                            }));
+                        } else if (teacherSavingsTransactions && teacherSavingsTransactions.length > 0) {
+                            // Unggah transaksi tabungan guru lokal ke cloud
+                            const txPayload = teacherSavingsTransactions.map(t => ({
+                                id: t.id,
+                                teacher_nip: t.teacherNip,
+                                teacher_name: t.teacherName,
+                                type: t.type,
+                                amount: t.amount,
+                                date: t.date,
+                                note: t.note || ''
+                            }));
+                            supabaseClient.from('teacher_savings_transactions').upsert(txPayload, { onConflict: 'id' }).catch(e => console.warn('Upload local teacher savings to cloud error:', e));
+                        }
                     }
 
                     if (!resParking.error && Array.isArray(resParking.data)) {
@@ -8409,16 +8437,24 @@ window.EDUVAULT_DEFAULT_CONFIG = {
                         totalParkingLogs: parkingLogs.length
                     },
                     students: students,
+                    data_siswa: students,
                     savingsTransactions: savingsTransactions,
+                    transaksi_siswa: savingsTransactions,
                     teachers: teachers,
+                    data_guru: teachers,
+                    guru: teachers,
                     teacherSavingsTransactions: teacherSavingsTransactions,
-                    parkingLogs: parkingLogs
+                    transaksi_guru: teacherSavingsTransactions,
+                    tabungan_guru: teacherSavingsTransactions,
+                    parkingLogs: parkingLogs,
+                    rekap_parkir: parkingLogs
                 };
 
+                // Gunakan text/plain agar tidak terkena blokir preflight CORS browser saat mengirim ke Google Apps Script
                 await fetch(cfg.url, {
                     method: 'POST',
                     mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(payload)
                 });
 
@@ -8426,7 +8462,8 @@ window.EDUVAULT_DEFAULT_CONFIG = {
                 saveSpreadsheetConfig(cfg);
                 populateSettingsSpreadsheetForm();
 
-                showToast('Seluruh data (Siswa, Transaksi, Guru, Parkir) berhasil dikirim ke Google Spreadsheet!', 'success');
+                const msg = `Full Backup terkirim! (${students.length} Siswa, ${savingsTransactions.length} Mutasi Siswa, ${teachers.length} Guru, ${teacherSavingsTransactions.length} Mutasi Guru, ${parkingLogs.length} Parkir)`;
+                showToast(msg, 'success');
             } catch (err) {
                 showToast(`Gagal mengirim data ke Spreadsheet: ${err.message}`, 'error');
             } finally {
@@ -8456,7 +8493,7 @@ window.EDUVAULT_DEFAULT_CONFIG = {
                 await fetch(cfg.url, {
                     method: 'POST',
                     mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(payload)
                 });
 
@@ -8516,56 +8553,61 @@ function doPost(e) {
     // 2. Jika FULL BACKUP, sinkronkan semua sheet
     if (action === "full_backup" || action === "sync_all") {
       // TAB SISWA
-      if (payload.students && payload.students.length > 0) {
+      var studentsList = payload.students || payload.data_siswa;
+      if (studentsList && studentsList.length > 0) {
         var sSheet = ss.getSheetByName("Data_Siswa") || ss.insertSheet("Data_Siswa");
         sSheet.clear();
         sSheet.appendRow(["NIS", "Nama Siswa", "Kelas", "Jurusan", "Jenis Kelamin", "Saldo Kas"]);
         sSheet.getRange(1, 1, 1, 6).setFontWeight("bold").setBackground("#dcfce7");
-        payload.students.forEach(function(s) {
+        studentsList.forEach(function(s) {
           sSheet.appendRow([s.nis, s.name, s.class, s.major || '', s.jk || '', s.balance || 0]);
         });
       }
 
       // TAB TRANSAKSI SISWA
-      if (payload.savingsTransactions && payload.savingsTransactions.length > 0) {
+      var txList = payload.savingsTransactions || payload.transaksi_siswa;
+      if (txList && txList.length > 0) {
         var txSheet = ss.getSheetByName("Transaksi_Siswa") || ss.insertSheet("Transaksi_Siswa");
         txSheet.clear();
         txSheet.appendRow(["ID Transaksi", "NIS", "Nama Siswa", "Tipe", "Nominal", "Tanggal", "Keterangan"]);
         txSheet.getRange(1, 1, 1, 7).setFontWeight("bold").setBackground("#e0e7ff");
-        payload.savingsTransactions.forEach(function(t) {
-          txSheet.appendRow([t.id, t.studentNis, t.studentName, t.type, t.amount, t.date, t.note || '']);
+        txList.forEach(function(t) {
+          txSheet.appendRow([t.id, t.studentNis || t.student_nis, t.studentName || t.student_name, t.type, t.amount, t.date, t.note || '']);
         });
       }
 
       // TAB GURU & KARYAWAN
-      if (payload.teachers && payload.teachers.length > 0) {
+      var teachersList = payload.teachers || payload.data_guru || payload.guru;
+      if (teachersList && teachersList.length > 0) {
         var tSheet = ss.getSheetByName("Data_Guru") || ss.insertSheet("Data_Guru");
         tSheet.clear();
         tSheet.appendRow(["NIP", "Nama Guru / Staf", "Jenis Kelamin", "Jabatan", "No HP", "Saldo Kas"]);
         tSheet.getRange(1, 1, 1, 6).setFontWeight("bold").setBackground("#fef9c3");
-        payload.teachers.forEach(function(tg) {
+        teachersList.forEach(function(tg) {
           tSheet.appendRow([tg.nip, tg.name, tg.jk || '', tg.role || '', tg.phone || '', tg.balance || 0]);
         });
       }
 
       // TAB TRANSAKSI GURU
-      if (payload.teacherSavingsTransactions && payload.teacherSavingsTransactions.length > 0) {
+      var teacherTxList = payload.teacherSavingsTransactions || payload.transaksi_guru || payload.tabungan_guru;
+      if (teacherTxList && teacherTxList.length > 0) {
         var tTxSheet = ss.getSheetByName("Transaksi_Guru") || ss.insertSheet("Transaksi_Guru");
         tTxSheet.clear();
         tTxSheet.appendRow(["ID Transaksi", "NIP", "Nama Guru / Staf", "Tipe", "Nominal", "Tanggal", "Keterangan"]);
         tTxSheet.getRange(1, 1, 1, 7).setFontWeight("bold").setBackground("#fae8ff");
-        payload.teacherSavingsTransactions.forEach(function(tt) {
-          tTxSheet.appendRow([tt.id, tt.teacherNip, tt.teacherName, tt.type, tt.amount, tt.date, tt.note || '']);
+        teacherTxList.forEach(function(tt) {
+          tTxSheet.appendRow([tt.id, tt.teacherNip || tt.teacher_nip, tt.teacherName || tt.teacher_name, tt.type, tt.amount, tt.date, tt.note || '']);
         });
       }
 
       // TAB REKAP PARKIR
-      if (payload.parkingLogs && payload.parkingLogs.length > 0) {
+      var parkingList = payload.parkingLogs || payload.rekap_parkir;
+      if (parkingList && parkingList.length > 0) {
         var pSheet = ss.getSheetByName("Rekap_Parkir") || ss.insertSheet("Rekap_Parkir");
         pSheet.clear();
         pSheet.appendRow(["ID Parkir", "Tanggal", "Penerimaan Retribusi", "Pengeluaran", "Keterangan"]);
         pSheet.getRange(1, 1, 1, 5).setFontWeight("bold").setBackground("#ffedd5");
-        payload.parkingLogs.forEach(function(p) {
+        parkingList.forEach(function(p) {
           pSheet.appendRow([p.id, p.date, p.amount || 0, p.expense || 0, p.note || '']);
         });
       }
