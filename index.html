@@ -783,132 +783,303 @@
             <!-- SECTION 2: TRANSAKSI TABUNGAN                  -->
             <!-- ============================================== -->
             <section id="sec-savings" class="hidden space-y-6">
-                <!-- Action Header: Impor & Template Tabungan -->
-                <div class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h3 class="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-                            <span>Transaksi & Tabungan Siswa</span>
-                        </h3>
-                        <p class="text-xs text-slate-500 font-medium">Catat setoran dan penarikan kas tabungan siswa harian atau impor riwayat dari file Excel</p>
-                    </div>
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <button onclick="downloadSavingsTemplate()" class="px-3.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm cursor-pointer" title="Download Template Excel Transaksi Tabungan">
-                            <i data-lucide="download" class="w-3.5 h-3.5 text-emerald-600"></i>
-                            <span>Template Excel Tabungan</span>
-                        </button>
+                <!-- Sub-Navigation Tab Switcher: Siswa vs Guru & Karyawan -->
+                <div class="flex items-center gap-2 p-1.5 bg-slate-200/80 dark:bg-slate-800/80 rounded-2xl w-full sm:w-fit backdrop-blur shadow-inner">
+                    <button type="button" id="tabBtnSavingsStudent" onclick="switchSavingsTab('student')" class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-extrabold text-xs transition-all duration-200 bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-sm cursor-pointer">
+                        <i data-lucide="graduation-cap" class="w-4 h-4"></i>
+                        <span>Transaksi &amp; Tabungan Siswa</span>
+                    </button>
+                    <button type="button" id="tabBtnSavingsTeacher" onclick="switchSavingsTab('teacher')" class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs transition-all duration-200 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer">
+                        <i data-lucide="briefcase" class="w-4 h-4"></i>
+                        <span>Transaksi &amp; Tabungan Guru Karyawan</span>
+                    </button>
+                </div>
 
-                        <label class="px-3.5 py-2 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm cursor-pointer" title="Impor data transaksi tabungan via file Excel">
-                            <i data-lucide="file-up" class="w-3.5 h-3.5"></i>
-                            <span>Impor Tabungan (Excel)</span>
-                            <input type="file" id="savingsExcelFileInput" accept=".xlsx, .xls, .csv" onchange="handleSavingsExcelUpload(event)" class="hidden">
-                        </label>
+                <!-- ======================================================== -->
+                <!-- SUB-CONTAINER 1: TRANSAKSI & TABUNGAN SISWA              -->
+                <!-- ======================================================== -->
+                <div id="savingsStudentContainer" class="space-y-6">
+                    <!-- Action Header: Impor & Template Tabungan -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h3 class="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                                <span>Transaksi &amp; Tabungan Siswa</span>
+                            </h3>
+                            <p class="text-xs text-slate-500 font-medium">Catat setoran dan penarikan kas tabungan siswa harian atau impor riwayat dari file Excel</p>
+                        </div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <button onclick="downloadSavingsTemplate()" class="px-3.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm cursor-pointer" title="Download Template Excel Transaksi Tabungan">
+                                <i data-lucide="download" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                <span>Template Excel Tabungan</span>
+                            </button>
+
+                            <label class="px-3.5 py-2 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm cursor-pointer" title="Impor data transaksi tabungan via file Excel">
+                                <i data-lucide="file-up" class="w-3.5 h-3.5"></i>
+                                <span>Impor Tabungan (Excel)</span>
+                                <input type="file" id="savingsExcelFileInput" accept=".xlsx, .xls, .csv" onchange="handleSavingsExcelUpload(event)" class="hidden">
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- FORM INPUT TRANSAKSI -->
+                        <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+                            <div class="border-b border-slate-100 pb-3">
+                                <h3 class="text-sm font-extrabold text-slate-900">Catat Transaksi Tabungan</h3>
+                                <p class="text-[11px] text-slate-400 font-medium">Setor atau tarik tabungan tunai siswa</p>
+                            </div>
+
+                            <form id="savingsForm" class="space-y-4">
+                                <!-- Student Selector -->
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Pilih / Cari Siswa *</label>
+                                    <div class="space-y-2">
+                                        <div class="relative">
+                                            <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3"></i>
+                                            <input type="text" id="txStudentSearch" oninput="populateStudentDropdowns()" placeholder="Ketik nama / NIS siswa..." class="w-full text-xs pl-8 pr-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 font-semibold outline-none transition-all">
+                                        </div>
+                                        <select id="txStudentSelect" required onchange="handleStudentSelectChange()" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 font-semibold bg-white outline-none">
+                                            <option value="">-- Pilih Siswa --</option>
+                                        </select>
+                                    </div>
+                                    <div id="selectedStudentBadge" class="hidden mt-2 p-2.5 rounded-xl bg-brand-50 border border-brand-200 text-brand-800 text-[11px] font-bold flex items-center justify-between">
+                                        <span>Saldo Sekarang:</span>
+                                        <span id="badgeCurrentBalance" class="text-emerald-700 font-black">Rp 0</span>
+                                    </div>
+                                </div>
+
+                                <!-- Transaction Type (Setor / Tarik) -->
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Jenis Transaksi *</label>
+                                    <input type="hidden" id="txType" name="txType" value="SETOR">
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <button type="button" id="btnTypeSetor" onclick="setSavingsType('SETOR')" class="select-none flex items-center justify-center gap-1.5 p-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-700 text-xs font-extrabold cursor-pointer transition-all shadow-sm focus:outline-none" style="caret-color: transparent; user-select: none; -webkit-user-select: none;">
+                                            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                                            <span>+ SETOR TUNAI</span>
+                                        </button>
+                                        <button type="button" id="btnTypeTarik" onclick="setSavingsType('TARIK')" class="select-none flex items-center justify-center gap-1.5 p-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold cursor-pointer transition-all hover:bg-slate-50 focus:outline-none" style="caret-color: transparent; user-select: none; -webkit-user-select: none;">
+                                            <i data-lucide="minus-circle" class="w-4 h-4"></i>
+                                            <span>- TARIK TUNAI</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Amount (Nominal) -->
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Nominal (Rp) *</label>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-2.5 font-bold text-slate-400 text-xs">Rp</span>
+                                        <input type="text" inputmode="numeric" id="txAmount" oninput="validateSavingsAmount()" required placeholder="50.000" class="w-full text-xs pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 font-extrabold text-slate-800 outline-none transition-all">
+                                    </div>
+                                    <div id="txAmountFeedback" class="hidden"></div>
+                                </div>
+
+                                <!-- Date -->
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Tanggal Transaksi</label>
+                                    <input type="date" id="txDate" required class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 font-semibold bg-white outline-none">
+                                </div>
+
+                                <!-- Note -->
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Keterangan / Catatan</label>
+                                    <input type="text" id="txNote" placeholder="Contoh: Tabungan mingguan" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 font-medium outline-none">
+                                </div>
+
+                                <button type="submit" id="btnSubmitSavings" class="w-full bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-bold text-xs py-3 rounded-xl shadow-md shadow-brand-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                                    <i data-lucide="arrow-down-left" class="w-4 h-4"></i>
+                                    <span>Simpan &amp; Setor Tabungan (+)</span>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- RIWAYAT TRANSAKSI DENGAN PENGELOMPOKAN SISWA -->
+                        <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col justify-between">
+                            <div>
+                                <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                    <div>
+                                        <h3 class="text-sm font-extrabold text-slate-900">Buku Induk Tabungan Siswa</h3>
+                                        <p class="text-[11px] text-slate-400 font-medium">Klik baris siswa untuk membuka seluruh riwayat mutasi setor/tarik</p>
+                                    </div>
+                                    <div class="relative">
+                                        <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5"></i>
+                                        <input type="text" id="searchSavingsInput" onkeyup="onSearchSavingsChange()" placeholder="Cari NIS / Nama..." class="text-xs pl-8 pr-3 py-1.5 rounded-xl border border-slate-300 outline-none focus:ring-2 focus:ring-brand-500 font-medium w-full sm:w-56">
+                                    </div>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left text-xs">
+                                        <thead class="bg-slate-50/80 text-slate-500 uppercase font-bold text-[10px] tracking-wider border-b border-slate-100">
+                                            <tr>
+                                                <th class="p-3.5 w-10 text-center"></th>
+                                                <th class="p-3.5">Nama Siswa / NIS</th>
+                                                <th class="p-3.5">Kelas</th>
+                                                <th class="p-3.5">Jumlah Transaksi</th>
+                                                <th class="p-3.5 text-right pr-6">Saldo Terkini</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="savingsHistoryBody" class="divide-y divide-slate-100 font-medium">
+                                            <tr><td colspan="5" class="p-5 text-center text-slate-400 font-normal">Memuat riwayat transaksi...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <!-- Savings Pagination -->
+                            <div id="savingsPagination" class="p-3.5 border-t border-slate-100 bg-slate-50/70 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-semibold text-slate-600"></div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- FORM INPUT TRANSAKSI -->
-                    <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
-                        <div class="border-b border-slate-100 pb-3">
-                            <h3 class="text-sm font-extrabold text-slate-900">Catat Transaksi Tabungan</h3>
-                            <p class="text-[11px] text-slate-400 font-medium">Setor atau tarik tabungan tunai siswa</p>
+                <!-- ======================================================== -->
+                <!-- SUB-CONTAINER 2: TRANSAKSI & TABUNGAN GURU KARYAWAN       -->
+                <!-- ======================================================== -->
+                <div id="savingsTeacherContainer" class="space-y-6 hidden">
+                    <!-- Action Header: Tambah Data Guru, Impor & Template Tabungan Guru -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h3 class="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                                <span>Transaksi &amp; Tabungan Guru Karyawan</span>
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200" id="badgeTeacherCount">0 Terdaftar</span>
+                            </h3>
+                            <p class="text-xs text-slate-500 font-medium">Catat setoran dan penarikan kas tabungan guru &amp; karyawan harian atau impor riwayat dari file Excel</p>
                         </div>
-
-                        <form id="savingsForm" class="space-y-4">
-                            <!-- Student Selector -->
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Pilih / Cari Siswa *</label>
-                                <div class="space-y-2">
-                                    <div class="relative">
-                                        <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3"></i>
-                                        <input type="text" id="txStudentSearch" oninput="populateStudentDropdowns()" placeholder="Ketik nama / NIS siswa..." class="w-full text-xs pl-8 pr-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 font-semibold outline-none transition-all">
-                                    </div>
-                                    <select id="txStudentSelect" required onchange="handleStudentSelectChange()" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 font-semibold bg-white outline-none">
-                                        <option value="">-- Pilih Siswa --</option>
-                                    </select>
-                                </div>
-                                <div id="selectedStudentBadge" class="hidden mt-2 p-2.5 rounded-xl bg-brand-50 border border-brand-200 text-brand-800 text-[11px] font-bold flex items-center justify-between">
-                                    <span>Saldo Sekarang:</span>
-                                    <span id="badgeCurrentBalance" class="text-emerald-700 font-black">Rp 0</span>
-                                </div>
-                            </div>
-
-                            <!-- Transaction Type (Setor / Tarik) -->
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Jenis Transaksi *</label>
-                                <input type="hidden" id="txType" name="txType" value="SETOR">
-                                <div class="grid grid-cols-2 gap-2">
-                                    <button type="button" id="btnTypeSetor" onclick="setSavingsType('SETOR')" class="select-none flex items-center justify-center gap-1.5 p-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-700 text-xs font-extrabold cursor-pointer transition-all shadow-sm focus:outline-none" style="caret-color: transparent; user-select: none; -webkit-user-select: none;">
-                                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
-                                        <span>+ SETOR TUNAI</span>
-                                    </button>
-                                    <button type="button" id="btnTypeTarik" onclick="setSavingsType('TARIK')" class="select-none flex items-center justify-center gap-1.5 p-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold cursor-pointer transition-all hover:bg-slate-50 focus:outline-none" style="caret-color: transparent; user-select: none; -webkit-user-select: none;">
-                                        <i data-lucide="minus-circle" class="w-4 h-4"></i>
-                                        <span>- TARIK TUNAI</span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Amount (Nominal) -->
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Nominal (Rp) *</label>
-                                <div class="relative">
-                                    <span class="absolute left-3 top-2.5 font-bold text-slate-400 text-xs">Rp</span>
-                                    <input type="text" inputmode="numeric" id="txAmount" oninput="validateSavingsAmount()" required placeholder="50.000" class="w-full text-xs pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 font-extrabold text-slate-800 outline-none transition-all">
-                                </div>
-                                <div id="txAmountFeedback" class="hidden"></div>
-                            </div>
-
-                            <!-- Date -->
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Tanggal Transaksi</label>
-                                <input type="date" id="txDate" required class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 font-semibold bg-white outline-none">
-                            </div>
-
-                            <!-- Note -->
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Keterangan / Catatan</label>
-                                <input type="text" id="txNote" placeholder="Contoh: Tabungan mingguan" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 font-medium outline-none">
-                            </div>
-
-                            <button type="submit" id="btnSubmitSavings" class="w-full bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-bold text-xs py-3 rounded-xl shadow-md shadow-brand-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer">
-                                <i data-lucide="arrow-down-left" class="w-4 h-4"></i>
-                                <span>Simpan & Setor Tabungan (+)</span>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <!-- TOMBOL TAMBAH DATA GURU & KARYAWAN (MANUAL) -->
+                            <button onclick="openTeacherModal()" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs transition-all flex items-center gap-1.5 shadow-md shadow-brand-600/25 cursor-pointer" title="Tambah Data Guru / Karyawan Baru (Manual)">
+                                <i data-lucide="user-plus" class="w-4 h-4"></i>
+                                <span>Tambah Data Guru / Karyawan</span>
                             </button>
-                        </form>
+
+                            <button onclick="downloadTeacherSavingsTemplate()" class="px-3.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm cursor-pointer" title="Download Template Excel Transaksi Tabungan Guru / Karyawan">
+                                <i data-lucide="download" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                <span>Template Excel</span>
+                            </button>
+
+                            <label class="px-3.5 py-2 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm cursor-pointer" title="Impor data transaksi tabungan guru / karyawan via file Excel">
+                                <i data-lucide="file-up" class="w-3.5 h-3.5"></i>
+                                <span>Impor Tabungan (Excel)</span>
+                                <input type="file" id="teacherSavingsExcelFileInput" accept=".xlsx, .xls, .csv" onchange="handleTeacherSavingsExcelUpload(event)" class="hidden">
+                            </label>
+                        </div>
                     </div>
 
-                    <!-- RIWAYAT TRANSAKSI DENGAN PENGELOMPOKAN SISWA -->
-                    <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col justify-between">
-                        <div>
-                            <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- FORM INPUT TRANSAKSI GURU & KARYAWAN -->
+                        <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+                            <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
                                 <div>
-                                    <h3 class="text-sm font-extrabold text-slate-900">Buku Induk Tabungan Siswa</h3>
-                                    <p class="text-[11px] text-slate-400 font-medium">Klik baris siswa untuk membuka seluruh riwayat mutasi setor/tarik</p>
+                                    <h3 class="text-sm font-extrabold text-slate-900">Catat Transaksi Guru &amp; Karyawan</h3>
+                                    <p class="text-[11px] text-slate-400 font-medium">Setor atau tarik tabungan tunai guru / karyawan</p>
                                 </div>
-                                <div class="relative">
-                                    <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5"></i>
-                                    <input type="text" id="searchSavingsInput" onkeyup="onSearchSavingsChange()" placeholder="Cari NIS / Nama..." class="text-xs pl-8 pr-3 py-1.5 rounded-xl border border-slate-300 outline-none focus:ring-2 focus:ring-brand-500 font-medium w-full sm:w-56">
+                                <button type="button" onclick="openTeacherModal()" class="text-[11px] font-bold text-brand-600 hover:text-brand-800 flex items-center gap-1 cursor-pointer" title="Tambah Guru / Karyawan Baru">
+                                    <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                                    <span>Baru</span>
+                                </button>
+                            </div>
+
+                            <form id="teacherSavingsForm" class="space-y-4">
+                                <!-- Teacher Selector -->
+                                <div>
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <label class="block text-xs font-bold text-slate-700">Pilih / Cari Guru &amp; Karyawan *</label>
+                                        <button type="button" onclick="openTeacherModal()" class="text-[10px] font-bold text-brand-600 hover:underline flex items-center gap-0.5 cursor-pointer">
+                                            <i data-lucide="user-plus" class="w-3 h-3"></i>
+                                            <span>+ Tambah Manual</span>
+                                        </button>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <div class="relative">
+                                            <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3"></i>
+                                            <input type="text" id="txTeacherSearch" oninput="populateTeacherDropdowns()" placeholder="Ketik nama / NIP guru karyawan..." class="w-full text-xs pl-8 pr-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 font-semibold outline-none transition-all">
+                                        </div>
+                                        <select id="txTeacherSelect" required onchange="handleTeacherSelectChange()" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 font-semibold bg-white outline-none">
+                                            <option value="">-- Pilih Guru / Karyawan --</option>
+                                        </select>
+                                    </div>
+                                    <div id="selectedTeacherBadge" class="hidden mt-2 p-2.5 rounded-xl bg-brand-50 border border-brand-200 text-brand-800 text-[11px] font-bold flex items-center justify-between">
+                                        <span>Saldo Sekarang:</span>
+                                        <span id="badgeCurrentTeacherBalance" class="text-emerald-700 font-black">Rp 0</span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left text-xs">
-                                    <thead class="bg-slate-50/80 text-slate-500 uppercase font-bold text-[10px] tracking-wider border-b border-slate-100">
-                                        <tr>
-                                            <th class="p-3.5 w-10 text-center"></th>
-                                            <th class="p-3.5">Nama Siswa / NIS</th>
-                                            <th class="p-3.5">Kelas</th>
-                                            <th class="p-3.5">Jumlah Transaksi</th>
-                                            <th class="p-3.5 text-right pr-6">Saldo Terkini</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="savingsHistoryBody" class="divide-y divide-slate-100 font-medium">
-                                        <tr><td colspan="5" class="p-5 text-center text-slate-400 font-normal">Memuat riwayat transaksi...</td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
+
+                                <!-- Transaction Type (Setor / Tarik) -->
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Jenis Transaksi *</label>
+                                    <input type="hidden" id="txTeacherType" name="txTeacherType" value="SETOR">
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <button type="button" id="btnTypeTeacherSetor" onclick="setTeacherSavingsType('SETOR')" class="select-none flex items-center justify-center gap-1.5 p-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-700 text-xs font-extrabold cursor-pointer transition-all shadow-sm focus:outline-none" style="caret-color: transparent; user-select: none;">
+                                            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                                            <span>+ SETOR TUNAI</span>
+                                        </button>
+                                        <button type="button" id="btnTypeTeacherTarik" onclick="setTeacherSavingsType('TARIK')" class="select-none flex items-center justify-center gap-1.5 p-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold cursor-pointer transition-all hover:bg-slate-50 focus:outline-none" style="caret-color: transparent; user-select: none;">
+                                            <i data-lucide="minus-circle" class="w-4 h-4"></i>
+                                            <span>- TARIK TUNAI</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Amount (Nominal) -->
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Nominal (Rp) *</label>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-2.5 font-bold text-slate-400 text-xs">Rp</span>
+                                        <input type="text" inputmode="numeric" id="txTeacherAmount" oninput="validateTeacherSavingsAmount()" required placeholder="50.000" class="w-full text-xs pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 font-extrabold text-slate-800 outline-none transition-all">
+                                    </div>
+                                    <div id="txTeacherAmountFeedback" class="hidden"></div>
+                                </div>
+
+                                <!-- Date -->
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Tanggal Transaksi</label>
+                                    <input type="date" id="txTeacherDate" required class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 font-semibold bg-white outline-none">
+                                </div>
+
+                                <!-- Note -->
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Keterangan / Catatan</label>
+                                    <input type="text" id="txTeacherNote" placeholder="Contoh: Tabungan bulanan / THR" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 font-medium outline-none">
+                                </div>
+
+                                <button type="submit" id="btnSubmitTeacherSavings" class="w-full bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-bold text-xs py-3 rounded-xl shadow-md shadow-brand-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                                    <i data-lucide="arrow-down-left" class="w-4 h-4"></i>
+                                    <span>Simpan &amp; Setor Tabungan (+)</span>
+                                </button>
+                            </form>
                         </div>
-                        <!-- Savings Pagination -->
-                        <div id="savingsPagination" class="p-3.5 border-t border-slate-100 bg-slate-50/70 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-semibold text-slate-600"></div>
+
+                        <!-- RIWAYAT TRANSAKSI DENGAN PENGELOMPOKAN GURU & KARYAWAN -->
+                        <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col justify-between">
+                            <div>
+                                <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                    <div>
+                                        <h3 class="text-sm font-extrabold text-slate-900">Buku Induk Tabungan Guru &amp; Karyawan</h3>
+                                        <p class="text-[11px] text-slate-400 font-medium">Klik baris guru/karyawan untuk membuka seluruh riwayat mutasi setor/tarik</p>
+                                    </div>
+                                    <div class="relative">
+                                        <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5"></i>
+                                        <input type="text" id="searchTeacherSavingsInput" onkeyup="onSearchTeacherSavingsChange()" placeholder="Cari NIP / Nama / Jabatan..." class="text-xs pl-8 pr-3 py-1.5 rounded-xl border border-slate-300 outline-none focus:ring-2 focus:ring-brand-500 font-medium w-full sm:w-56">
+                                    </div>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left text-xs">
+                                        <thead class="bg-slate-50/80 text-slate-500 uppercase font-bold text-[10px] tracking-wider border-b border-slate-100">
+                                            <tr>
+                                                <th class="p-3.5 w-10 text-center"></th>
+                                                <th class="p-3.5">Nama Guru-Karyawan / NIP</th>
+                                                <th class="p-3.5">Jabatan / Bagian</th>
+                                                <th class="p-3.5">Jumlah Transaksi</th>
+                                                <th class="p-3.5 text-right pr-6">Saldo Terkini</th>
+                                                <th class="p-3.5 text-center w-16">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="teacherSavingsHistoryBody" class="divide-y divide-slate-100 font-medium">
+                                            <tr><td colspan="6" class="p-5 text-center text-slate-400 font-normal">Memuat riwayat transaksi guru &amp; karyawan...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <!-- Teacher Savings Pagination -->
+                            <div id="teacherSavingsPagination" class="p-3.5 border-t border-slate-100 bg-slate-50/70 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-semibold text-slate-600"></div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -1105,8 +1276,10 @@
                         <div>
                             <label class="block font-bold text-slate-700 mb-1">Jenis Laporan</label>
                             <select id="repType" onchange="handleReportTypeChange()" class="w-full p-2.5 rounded-xl border border-slate-300 font-semibold bg-white outline-none focus:ring-2 focus:ring-brand-500">
-                                <option value="SAVINGS">Rekap Mutasi Tabungan (Semua Siswa)</option>
-                                <option value="STUDENT">Buku Tabungan Digital (Per Siswa)</option>
+                                <option value="SAVINGS">Rekap Mutasi Tabungan Siswa</option>
+                                <option value="STUDENT">Buku Tabungan Digital Siswa (Per Siswa)</option>
+                                <option value="TEACHER_SAVINGS">Rekap Mutasi Tabungan Guru &amp; Karyawan</option>
+                                <option value="TEACHER">Buku Tabungan Digital Guru / Karyawan</option>
                                 <option value="PARKING">Rekapitulasi Retribusi Parkir Harian</option>
                             </select>
                         </div>
@@ -1142,6 +1315,20 @@
                             <label class="block text-xs font-bold text-brand-900 mb-1">Pilih Siswa Terpilih *</label>
                             <select id="repStudentSelect" onchange="applyReportFilter()" class="w-full text-xs p-2 rounded-lg border border-brand-300 font-bold bg-white">
                                 <option value="">-- Pilih Siswa Terlebih Dahulu --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Additional Teacher Selector Filter for Individual Passbook -->
+                    <div id="repTeacherFilterContainer" class="hidden p-3.5 bg-indigo-50/60 rounded-xl border border-indigo-200 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-indigo-900 mb-1">Cari Guru / Karyawan:</label>
+                            <input type="text" id="repTeacherSearch" oninput="populateReportTeacherDropdown()" placeholder="Ketik nama atau NIP..." class="w-full text-xs p-2 rounded-lg border border-indigo-300 font-medium">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-indigo-900 mb-1">Pilih Guru / Karyawan Terpilih *</label>
+                            <select id="repTeacherSelect" onchange="applyReportFilter()" class="w-full text-xs p-2 rounded-lg border border-indigo-300 font-bold bg-white">
+                                <option value="">-- Pilih Guru / Karyawan Terlebih Dahulu --</option>
                             </select>
                         </div>
                     </div>
@@ -1845,6 +2032,172 @@
     </div>
 
     <!-- ============================================================== -->
+    <!-- MODAL: TAMBAH / EDIT GURU & KARYAWAN (MANUAL)                  -->
+    <!-- ============================================================== -->
+    <div id="teacherModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-md p-6 sm:p-7 space-y-4">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-sm">
+                        <i data-lucide="user-check" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-900" id="teacherModalTitle">Tambah Data Guru / Karyawan</h3>
+                        <p class="text-[11px] text-slate-400 font-medium">Input data guru &amp; karyawan penabung</p>
+                    </div>
+                </div>
+                <button onclick="closeTeacherModal()" class="text-slate-400 hover:text-slate-700 p-1">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form id="teacherForm" class="space-y-3.5">
+                <input type="hidden" id="tchEditNip">
+
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-xs font-bold text-slate-700">NIP / ID Guru-Karyawan *</label>
+                        <button type="button" onclick="generateAutoTeacherNip()" class="text-[10px] font-bold text-brand-600 hover:underline">
+                            Buat ID Otomatis
+                        </button>
+                    </div>
+                    <input type="text" id="tchNip" required placeholder="Contoh: 19850115... atau GK-001" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 font-semibold focus:ring-2 focus:ring-brand-500 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap &amp; Gelar *</label>
+                    <input type="text" id="tchName" required placeholder="Contoh: Budi Santoso, S.Pd." class="w-full text-xs p-2.5 rounded-xl border border-slate-300 font-semibold focus:ring-2 focus:ring-brand-500 outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Jenis Kelamin *</label>
+                        <select id="tchJk" required class="w-full text-xs p-2.5 rounded-xl border border-slate-300 font-semibold bg-white outline-none">
+                            <option value="L">Laki-laki (L)</option>
+                            <option value="P">Perempuan (P)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Jabatan / Bagian *</label>
+                        <input type="text" id="tchRole" required list="teacherRolesList" placeholder="Contoh: Guru Mapel / TU" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 font-semibold focus:ring-2 focus:ring-brand-500 outline-none">
+                        <datalist id="teacherRolesList">
+                            <option value="Guru Mata Pelajaran">
+                            <option value="Guru Kelas">
+                            <option value="Guru BK">
+                            <option value="Kepala Sekolah">
+                            <option value="Wakil Kepala Sekolah">
+                            <option value="Tata Usaha (TU)">
+                            <option value="Staff Perpustakaan">
+                            <option value="Staff Administrasi">
+                            <option value="Petugas Keamanan / Satpam">
+                            <option value="Petugas Kebersihan">
+                            <option value="Laboran">
+                            <option value="Karyawan">
+                        </datalist>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">No. WhatsApp / HP (Opsional)</label>
+                    <input type="text" id="tchPhone" placeholder="Contoh: 08123456789" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 font-semibold focus:ring-2 focus:ring-brand-500 outline-none">
+                </div>
+
+                <div id="tchInitialBalanceContainer">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Saldo Setoran Awal (Opsional)</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-2.5 font-bold text-slate-400 text-xs">Rp</span>
+                        <input type="text" inputmode="numeric" id="tchInitialBalance" placeholder="0" class="w-full text-xs pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 font-extrabold text-slate-800 outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-1">Jika diisi > 0, sistem otomatis mencatat setoran awal tabungan.</p>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-3">
+                    <button type="button" onclick="closeTeacherModal()" class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-100 cursor-pointer">Batal</button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-md cursor-pointer">Simpan Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- MODAL: PRATINJAU IMPOR TABUNGAN GURU & KARYAWAN EXCEL          -->
+    <!-- ============================================================== -->
+    <div id="teacherSavingsExcelPreviewModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-4xl p-6 sm:p-7 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                        <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-900">Pratinjau Impor Tabungan Guru &amp; Karyawan</h3>
+                        <p class="text-xs text-slate-400 font-medium" id="teacherSavingsExcelImportCount">0 transaksi siap diimpor</p>
+                    </div>
+                </div>
+                <button onclick="closeTeacherSavingsExcelModal()" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Summary Chips -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 text-slate-700">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Transaksi</p>
+                    <p class="text-sm font-black text-slate-800 mt-0.5" id="previewTeacherSavingsTotalRows">0 baris</p>
+                </div>
+                <div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-200/80 text-emerald-800">
+                    <p class="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">Total Nominal</p>
+                    <p class="text-sm font-black text-emerald-700 mt-0.5" id="previewTeacherSavingsTotalAmount">Rp 0</p>
+                </div>
+                <div class="p-3 rounded-2xl bg-sky-50 border border-sky-200/80 text-sky-800">
+                    <p class="text-[10px] text-sky-600 font-bold uppercase tracking-wider">Guru Terdaftar</p>
+                    <p class="text-sm font-black text-sky-700 mt-0.5" id="previewTeacherSavingsMatchedCount">0 transaksi</p>
+                </div>
+                <div class="p-3 rounded-2xl bg-indigo-50 border border-indigo-200/80 text-indigo-800">
+                    <p class="text-[10px] text-indigo-600 font-bold uppercase tracking-wider">Guru Baru (Auto)</p>
+                    <p class="text-sm font-black text-indigo-700 mt-0.5" id="previewTeacherSavingsNewCount">0 orang</p>
+                </div>
+            </div>
+
+            <!-- Table Preview -->
+            <div class="overflow-x-auto max-h-72 border border-slate-200 rounded-2xl custom-scrollbar">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-50/90 text-slate-600 uppercase font-bold text-[10px] tracking-wider border-b border-slate-200 sticky top-0 backdrop-blur-sm">
+                        <tr>
+                            <th class="p-3 pl-4">No</th>
+                            <th class="p-3">Tanggal</th>
+                            <th class="p-3">NIP / ID</th>
+                            <th class="p-3">Nama Guru/Karyawan</th>
+                            <th class="p-3">Kecocokan</th>
+                            <th class="p-3">Tipe</th>
+                            <th class="p-3 text-right">Nominal</th>
+                            <th class="p-3 pr-4">Catatan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="teacherSavingsExcelPreviewTableBody" class="divide-y divide-slate-100 font-semibold text-slate-700">
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Action Controls -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+                <div class="flex items-center gap-2 text-[11px] text-slate-500 font-medium">
+                    <i data-lucide="info" class="w-4 h-4 text-brand-600 flex-shrink-0"></i>
+                    <span>Kecocokan dicek via <strong>NIP</strong> atau <strong>Nama</strong>. Guru/Karyawan baru akan otomatis didaftarkan.</span>
+                </div>
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    <button type="button" onclick="closeTeacherSavingsExcelModal()" class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-100 transition-all cursor-pointer">Batal</button>
+                    <button type="button" id="btnConfirmTeacherSavingsImport" onclick="confirmTeacherSavingsExcelImport()" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 flex items-center gap-1.5 transition-all cursor-pointer">
+                        <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                        <span>Konfirmasi &amp; Simpan Semua</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================== -->
     <!-- MODAL: PRATINJAU IMPOR REKAP PARKIR EXCEL                      -->
     <!-- ============================================================== -->
     <div id="parkingExcelPreviewModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
@@ -2019,16 +2372,22 @@
         const STORAGE_KEY_CONFIG = 'eduvault_sb_config';
         const STORAGE_KEY_STUDENTS = 'eduvault_data_students';
         const STORAGE_KEY_SAVINGS = 'eduvault_data_savings';
+        const STORAGE_KEY_TEACHERS = 'eduvault_data_teachers';
+        const STORAGE_KEY_TEACHER_SAVINGS = 'eduvault_data_teacher_savings';
         const STORAGE_KEY_PARKING = 'eduvault_data_parking';
         const STORAGE_KEY_USERS = 'eduvault_data_users';
         const STORAGE_KEY_SESSION = 'eduvault_active_session';
 
         const ITEMS_PER_PAGE = 10;
         let currentPageSavings = 1;
+        let currentPageTeacherSavings = 1;
         let currentPageStudents = 1;
         let currentPageParking = 1;
         let currentPageUsers = 1;
         let currentPageReport = 1;
+
+        let currentSavingsTab = 'student'; // 'student' or 'teacher'
+        let currentTeacherSavingsType = 'SETOR';
 
         let currentUser = null;
         let pendingConfirmAction = null;
@@ -2037,9 +2396,12 @@
         let tempImportData = [];
         let tempSavingsImportData = [];
         let tempSavingsNewStudents = [];
+        let tempTeacherSavingsImportData = [];
+        let tempTeacherSavingsNewTeachers = [];
         let tempParkingImportData = [];
 
         const expandedSavingsGroups = new Set();
+        const expandedTeacherSavingsGroups = new Set();
         const expandedReportGroups = new Set();
 
         // Supabase Client Handle
@@ -2065,11 +2427,15 @@
 
         const DEFAULT_STUDENTS = [];
         const DEFAULT_SAVINGS = [];
+        const DEFAULT_TEACHERS = [];
+        const DEFAULT_TEACHER_SAVINGS = [];
         const DEFAULT_PARKING = [];
 
         // Active Application In-Memory Models
         let students = [];
         let savingsTransactions = [];
+        let teachers = [];
+        let teacherSavingsTransactions = [];
         let parkingLogs = [];
         let users = [];
 
@@ -2347,6 +2713,12 @@
                 const txStr = localStorage.getItem(STORAGE_KEY_SAVINGS);
                 savingsTransactions = txStr ? JSON.parse(txStr) : [...DEFAULT_SAVINGS];
 
+                const tchStr = localStorage.getItem(STORAGE_KEY_TEACHERS);
+                teachers = tchStr ? JSON.parse(tchStr) : [...DEFAULT_TEACHERS];
+
+                const tchTxStr = localStorage.getItem(STORAGE_KEY_TEACHER_SAVINGS);
+                teacherSavingsTransactions = tchTxStr ? JSON.parse(tchTxStr) : [...DEFAULT_TEACHER_SAVINGS];
+
                 const prkStr = localStorage.getItem(STORAGE_KEY_PARKING);
                 parkingLogs = prkStr ? JSON.parse(prkStr) : [...DEFAULT_PARKING];
 
@@ -2354,10 +2726,13 @@
                 users = usrStr ? JSON.parse(usrStr) : [...DEFAULT_USERS];
 
                 recalculateStudentBalances();
+                recalculateTeacherBalances();
             } catch (e) {
                 console.error('Error loading local data:', e);
                 students = [...DEFAULT_STUDENTS];
                 savingsTransactions = [...DEFAULT_SAVINGS];
+                teachers = [...DEFAULT_TEACHERS];
+                teacherSavingsTransactions = [...DEFAULT_TEACHER_SAVINGS];
                 parkingLogs = [...DEFAULT_PARKING];
                 users = [...DEFAULT_USERS];
             }
@@ -2367,6 +2742,8 @@
             try {
                 localStorage.setItem(STORAGE_KEY_STUDENTS, JSON.stringify(students));
                 localStorage.setItem(STORAGE_KEY_SAVINGS, JSON.stringify(savingsTransactions));
+                localStorage.setItem(STORAGE_KEY_TEACHERS, JSON.stringify(teachers));
+                localStorage.setItem(STORAGE_KEY_TEACHER_SAVINGS, JSON.stringify(teacherSavingsTransactions));
                 localStorage.setItem(STORAGE_KEY_PARKING, JSON.stringify(parkingLogs));
                 localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
             } catch (e) {
@@ -2384,11 +2761,13 @@
             try {
                 if (supabaseClient) {
                     // Fetch from Supabase tables
-                    const [resUsers, resStudents, resSavings, resParking] = await Promise.all([
+                    const [resUsers, resStudents, resSavings, resParking, resTeachers, resTeacherSavings] = await Promise.all([
                         supabaseClient.from('app_users').select('*'),
                         supabaseClient.from('students').select('*'),
                         supabaseClient.from('savings_transactions').select('*'),
-                        supabaseClient.from('parking_logs').select('*')
+                        supabaseClient.from('parking_logs').select('*'),
+                        supabaseClient.from('teachers').select('*'),
+                        supabaseClient.from('teacher_savings_transactions').select('*')
                     ]);
 
                     let hasError = false;
@@ -2403,7 +2782,6 @@
                     }
 
                     if (!resSavings.error && Array.isArray(resSavings.data)) {
-                        // Map field naming consistency
                         savingsTransactions = resSavings.data.map(t => ({
                             id: t.id,
                             studentNis: t.student_nis || t.studentNis,
@@ -2415,6 +2793,22 @@
                         }));
                     } else if (resSavings.error) {
                         hasError = true;
+                    }
+
+                    if (resTeachers && !resTeachers.error && Array.isArray(resTeachers.data)) {
+                        teachers = resTeachers.data;
+                    }
+
+                    if (resTeacherSavings && !resTeacherSavings.error && Array.isArray(resTeacherSavings.data)) {
+                        teacherSavingsTransactions = resTeacherSavings.data.map(t => ({
+                            id: t.id,
+                            teacherNip: t.teacher_nip || t.teacherNip,
+                            teacherName: t.teacher_name || t.teacherName,
+                            type: t.type,
+                            amount: Number(t.amount || 0),
+                            date: t.date,
+                            note: t.note || ''
+                        }));
                     }
 
                     if (!resParking.error && Array.isArray(resParking.data)) {
@@ -2443,6 +2837,7 @@
                 }
 
                 recalculateStudentBalances();
+                recalculateTeacherBalances();
                 renderAllViews();
                 renderDashboardChart();
                 updateModalStatusCard();
@@ -2608,7 +3003,7 @@
 
             const titleMap = {
                 dashboard: 'Dashboard Utama',
-                savings: 'Transaksi Tabungan Siswa',
+                savings: currentSavingsTab === 'teacher' ? 'Transaksi Tabungan Guru Karyawan' : 'Transaksi Tabungan Siswa',
                 parking: 'Pencatatan Rekap Parkir',
                 students: 'Kelola Data Master Siswa',
                 reports: 'Pusat Laporan & Cetak Buku Tabungan',
@@ -2617,6 +3012,10 @@
             };
             const titleEl = document.getElementById('pageTitle');
             if (titleEl) titleEl.innerText = titleMap[sectionId] || 'EduVault';
+
+            if (sectionId === 'savings') {
+                switchSavingsTab(currentSavingsTab || 'student');
+            }
 
             if (sectionId === 'reports') {
                 handleReportTypeChange();
@@ -2638,6 +3037,44 @@
                 sidebar.classList.add('-translate-x-full');
             }
 
+            safeLucide();
+        }
+
+        function switchSavingsTab(tab) {
+            currentSavingsTab = tab;
+            const btnStudent = document.getElementById('tabBtnSavingsStudent');
+            const btnTeacher = document.getElementById('tabBtnSavingsTeacher');
+            const contStudent = document.getElementById('savingsStudentContainer');
+            const contTeacher = document.getElementById('savingsTeacherContainer');
+            const titleEl = document.getElementById('pageTitle');
+
+            if (tab === 'student') {
+                if (contStudent) contStudent.classList.remove('hidden');
+                if (contTeacher) contTeacher.classList.add('hidden');
+
+                if (btnStudent) {
+                    btnStudent.className = 'flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-extrabold text-xs transition-all duration-200 bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-sm cursor-pointer';
+                }
+                if (btnTeacher) {
+                    btnTeacher.className = 'flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs transition-all duration-200 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer';
+                }
+                if (titleEl) titleEl.innerText = 'Transaksi Tabungan Siswa';
+                renderSavings();
+                populateStudentDropdowns();
+            } else {
+                if (contStudent) contStudent.classList.add('hidden');
+                if (contTeacher) contTeacher.classList.remove('hidden');
+
+                if (btnTeacher) {
+                    btnTeacher.className = 'flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-extrabold text-xs transition-all duration-200 bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-sm cursor-pointer';
+                }
+                if (btnStudent) {
+                    btnStudent.className = 'flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs transition-all duration-200 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer';
+                }
+                if (titleEl) titleEl.innerText = 'Transaksi Tabungan Guru Karyawan';
+                renderTeacherSavings();
+                populateTeacherDropdowns();
+            }
             safeLucide();
         }
 
@@ -3481,13 +3918,22 @@
             });
         }
 
+        function recalculateTeacherBalances() {
+            teachers.forEach(tch => {
+                const txs = teacherSavingsTransactions.filter(t => t.teacherNip === tch.nip);
+                tch.balance = txs.reduce((acc, t) => acc + (t.type === 'SETOR' ? Number(t.amount || 0) : -Number(t.amount || 0)), 0);
+            });
+        }
+
         function renderAllViews() {
             renderDashboard();
             renderSavings();
+            renderTeacherSavings();
             renderStudents();
             renderParking();
             renderUsers();
             populateStudentDropdowns();
+            populateTeacherDropdowns();
         }
 
         // ==========================================
@@ -4025,6 +4471,1014 @@
                 renderDashboardChart();
                 showToast('Mutasi transaksi berhasil dihapus!', 'info');
             });
+        }
+
+        // ==========================================
+        // 6.B TEACHER SAVINGS & GURU KARYAWAN ENGINE
+        // ==========================================
+        function populateTeacherDropdowns() {
+            const select = document.getElementById('txTeacherSelect');
+            const searchInput = document.getElementById('txTeacherSearch');
+            const countBadge = document.getElementById('badgeTeacherCount');
+
+            if (countBadge) {
+                countBadge.innerText = `${teachers.length} Terdaftar`;
+            }
+
+            if (!select) return;
+
+            const currentSelectedNip = select.value;
+            const searchText = (searchInput?.value || '').toLowerCase().trim();
+
+            let filteredTeachers = teachers;
+
+            if (searchText) {
+                filteredTeachers = filteredTeachers.filter(t => 
+                    String(t.name || '').toLowerCase().includes(searchText) || 
+                    String(t.nip || '').toLowerCase().includes(searchText) ||
+                    String(t.role || '').toLowerCase().includes(searchText)
+                );
+            }
+
+            if (filteredTeachers.length === 0) {
+                select.innerHTML = '<option value="">-- Guru / Karyawan Tidak Ditemukan --</option>';
+            } else {
+                select.innerHTML = '<option value="">-- Pilih Guru / Karyawan --</option>' + 
+                    filteredTeachers.map(t => {
+                        const isSelected = String(t.nip) === String(currentSelectedNip);
+                        const roleInfo = t.role ? ` • ${t.role}` : '';
+                        const balInfo = ` • Saldo: ${formatRp(t.balance)}`;
+                        return `<option value="${t.nip}" ${isSelected ? 'selected' : ''}>${t.name} (${t.nip}${roleInfo}${balInfo})</option>`;
+                    }).join('');
+            }
+
+            if (searchText && filteredTeachers.length === 1) {
+                select.value = filteredTeachers[0].nip;
+                handleTeacherSelectChange();
+            }
+        }
+
+        function handleTeacherSelectChange() {
+            const nip = document.getElementById('txTeacherSelect')?.value;
+            const badge = document.getElementById('selectedTeacherBadge');
+            const balanceEl = document.getElementById('badgeCurrentTeacherBalance');
+
+            const teacher = teachers.find(t => t.nip === nip);
+            if (teacher && badge && balanceEl) {
+                balanceEl.innerText = formatRp(teacher.balance);
+                badge.classList.remove('hidden');
+            } else if (badge) {
+                badge.classList.add('hidden');
+            }
+            validateTeacherSavingsAmount();
+        }
+
+        function setTeacherSavingsType(type) {
+            currentTeacherSavingsType = type;
+            const input = document.getElementById('txTeacherType');
+            if (input) input.value = type;
+
+            const btnSetor = document.getElementById('btnTypeTeacherSetor');
+            const btnTarik = document.getElementById('btnTypeTeacherTarik');
+            const submitBtn = document.getElementById('btnSubmitTeacherSavings');
+
+            if (type === 'SETOR') {
+                if (btnSetor) {
+                    btnSetor.className = 'select-none flex items-center justify-center gap-1.5 p-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-700 text-xs font-extrabold cursor-pointer transition-all shadow-sm focus:outline-none';
+                }
+                if (btnTarik) {
+                    btnTarik.className = 'select-none flex items-center justify-center gap-1.5 p-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold cursor-pointer transition-all hover:bg-slate-50 focus:outline-none';
+                }
+                if (submitBtn) {
+                    submitBtn.className = 'w-full bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-bold text-xs py-3 rounded-xl shadow-md shadow-brand-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer';
+                    submitBtn.innerHTML = '<i data-lucide="arrow-down-left" class="w-4 h-4"></i><span>Simpan & Setor Tabungan (+)</span>';
+                }
+            } else {
+                if (btnTarik) {
+                    btnTarik.className = 'select-none flex items-center justify-center gap-1.5 p-2.5 rounded-xl border-2 border-rose-500 bg-rose-50 text-rose-700 text-xs font-extrabold cursor-pointer transition-all shadow-sm focus:outline-none';
+                }
+                if (btnSetor) {
+                    btnSetor.className = 'select-none flex items-center justify-center gap-1.5 p-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold cursor-pointer transition-all hover:bg-slate-50 focus:outline-none';
+                }
+                if (submitBtn) {
+                    submitBtn.className = 'w-full bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white font-bold text-xs py-3 rounded-xl shadow-md shadow-rose-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer';
+                    submitBtn.innerHTML = '<i data-lucide="arrow-up-right" class="w-4 h-4"></i><span>Simpan & Tarik Tabungan (-)</span>';
+                }
+            }
+            safeLucide();
+            validateTeacherSavingsAmount();
+        }
+
+        function fillMaxTeacherWithdrawal() {
+            const nip = document.getElementById('txTeacherSelect')?.value;
+            const teacher = teachers.find(t => t.nip === nip);
+            if (!teacher || (teacher.balance || 0) <= 0) {
+                showToast('Pilih guru / karyawan dengan saldo aktif terlebih dahulu!', 'warning');
+                return;
+            }
+            const input = document.getElementById('txTeacherAmount');
+            if (input) {
+                input.value = Number(teacher.balance).toLocaleString('id-ID');
+                validateTeacherSavingsAmount();
+            }
+        }
+
+        function validateTeacherSavingsAmount() {
+            const input = document.getElementById('txTeacherAmount');
+            const feedback = document.getElementById('txTeacherAmountFeedback');
+            if (!input || !feedback) return;
+
+            const nip = document.getElementById('txTeacherSelect')?.value;
+            const teacher = teachers.find(t => t.nip === nip);
+            const amount = parseRupiahInput(input.value);
+            const type = document.getElementById('txTeacherType')?.value || currentTeacherSavingsType;
+
+            if (type === 'TARIK') {
+                if (!teacher) {
+                    feedback.className = 'hidden';
+                    feedback.innerHTML = '';
+                    input.classList.remove('border-rose-500', 'bg-rose-50/20');
+                    return;
+                }
+
+                const bal = Number(teacher.balance || 0);
+
+                if (bal <= 0) {
+                    feedback.className = 'mt-2 p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center justify-between gap-2';
+                    feedback.innerHTML = `
+                        <div class="flex items-center gap-1.5">
+                            <i data-lucide="alert-circle" class="w-4 h-4 text-rose-600 shrink-0"></i>
+                            <span>Saldo saat ini <strong>Rp 0</strong>. Tidak dapat melakukan penarikan.</span>
+                        </div>
+                    `;
+                    input.classList.add('border-rose-500', 'bg-rose-50/20');
+                    safeLucide();
+                    return;
+                }
+
+                if (amount > bal) {
+                    feedback.className = 'mt-2 p-2.5 rounded-xl bg-rose-50 border border-rose-300 text-rose-800 text-xs font-semibold flex items-center justify-between gap-2 shadow-sm';
+                    feedback.innerHTML = `
+                        <div class="flex items-center gap-1.5">
+                            <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-600 shrink-0"></i>
+                            <span>Nominal melebihi saldo! Maks: <strong class="text-rose-900">${formatRp(bal)}</strong></span>
+                        </div>
+                        <button type="button" onclick="fillMaxTeacherWithdrawal()" class="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-[10px] tracking-wide shrink-0 transition-all shadow-sm cursor-pointer">
+                            Tarik Maksimal
+                        </button>
+                    `;
+                    input.classList.add('border-rose-500', 'bg-rose-50/20');
+                    safeLucide();
+                } else if (amount > 0) {
+                    const sisa = bal - amount;
+                    feedback.className = 'mt-2 p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-semibold flex items-center justify-between gap-2';
+                    feedback.innerHTML = `
+                        <div class="flex items-center gap-1.5">
+                            <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-600 shrink-0"></i>
+                            <span>Sisa saldo setelah penarikan: <strong class="text-emerald-900">${formatRp(sisa)}</strong></span>
+                        </div>
+                        <button type="button" onclick="fillMaxTeacherWithdrawal()" class="text-[10px] font-bold text-slate-500 hover:text-slate-800 underline shrink-0 cursor-pointer">
+                            Set Maksimal
+                        </button>
+                    `;
+                    input.classList.remove('border-rose-500', 'bg-rose-50/20');
+                    safeLucide();
+                } else {
+                    feedback.className = 'mt-2 p-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 text-[11px] font-medium flex items-center justify-between gap-2';
+                    feedback.innerHTML = `
+                        <span>Saldo tersedia untuk penarikan: <strong class="text-slate-800">${formatRp(bal)}</strong></span>
+                        <button type="button" onclick="fillMaxTeacherWithdrawal()" class="px-2 py-0.5 rounded bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-[10px] shrink-0 cursor-pointer">
+                            Tarik Semua
+                        </button>
+                    `;
+                    input.classList.remove('border-rose-500', 'bg-rose-50/20');
+                }
+            } else {
+                feedback.className = 'hidden';
+                feedback.innerHTML = '';
+                input.classList.remove('border-rose-500', 'bg-rose-50/20');
+            }
+        }
+
+        async function handleTeacherSavingsSubmit(e) {
+            e.preventDefault();
+            const nip = document.getElementById('txTeacherSelect').value;
+            const type = document.getElementById('txTeacherType')?.value || currentTeacherSavingsType || 'SETOR';
+            const amount = parseRupiahInput(document.getElementById('txTeacherAmount').value);
+            const date = document.getElementById('txTeacherDate').value || getTodayIsoDate();
+            const note = document.getElementById('txTeacherNote').value.trim();
+
+            const teacher = teachers.find(t => t.nip === nip);
+            if (!teacher) {
+                showToast('Pilih guru / karyawan terlebih dahulu!', 'error');
+                document.getElementById('txTeacherSelect')?.focus();
+                return;
+            }
+
+            if (amount <= 0) {
+                showToast('Nominal transaksi harus lebih dari Rp 0!', 'error');
+                document.getElementById('txTeacherAmount')?.focus();
+                return;
+            }
+
+            if (type === 'TARIK' && (teacher.balance || 0) < amount) {
+                showToast(`Saldo guru/karyawan tidak mencukupi! Maksimal: ${formatRp(teacher.balance)}`, 'error');
+                validateTeacherSavingsAmount();
+                document.getElementById('txTeacherAmount')?.focus();
+                return;
+            }
+
+            const newTxId = 'tx_tch_' + Date.now();
+            const newTx = {
+                id: newTxId,
+                teacherNip: teacher.nip,
+                teacherName: teacher.name,
+                type: type,
+                amount: amount,
+                date: date,
+                note: note || (type === 'SETOR' ? 'Setoran tunai guru & karyawan' : 'Penarikan tunai')
+            };
+
+            teacherSavingsTransactions.push(newTx);
+            recalculateTeacherBalances();
+            saveDataToLocal();
+
+            // Push to Supabase if connected
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from('teacher_savings_transactions').insert([{
+                        id: newTx.id,
+                        teacher_nip: newTx.teacherNip,
+                        teacher_name: newTx.teacherName,
+                        type: newTx.type,
+                        amount: newTx.amount,
+                        date: newTx.date,
+                        note: newTx.note
+                    }]);
+                    await supabaseClient.from('teachers').update({ balance: teacher.balance }).eq('nip', teacher.nip);
+                } catch (err) {
+                    console.warn('Supabase sync teacher savings error:', err);
+                }
+            }
+
+            document.getElementById('teacherSavingsForm').reset();
+            setupDateInputs();
+            setTeacherSavingsType('SETOR');
+            handleTeacherSelectChange();
+            validateTeacherSavingsAmount();
+            renderTeacherSavings();
+            populateTeacherDropdowns();
+
+            showToast(`Transaksi ${type === 'SETOR' ? 'Setoran' : 'Penarikan'} sebesar ${formatRp(amount)} atas nama ${teacher.name} berhasil disimpan!`, 'success');
+        }
+
+        function renderTeacherSavings() {
+            const tbody = document.getElementById('teacherSavingsHistoryBody');
+            if (!tbody) return;
+
+            const search = (document.getElementById('searchTeacherSavingsInput')?.value || '').toLowerCase().trim();
+
+            // Ambil semua guru yang terdaftar
+            let displayTeachers = [...teachers];
+
+            if (search) {
+                displayTeachers = displayTeachers.filter(t => 
+                    String(t.nip || '').toLowerCase().includes(search) || 
+                    String(t.name || '').toLowerCase().includes(search) ||
+                    String(t.role || '').toLowerCase().includes(search)
+                );
+            }
+
+            if (displayTeachers.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="p-8 text-center text-slate-400">
+                            <i data-lucide="user-x" class="w-8 h-8 mx-auto mb-2 opacity-40"></i>
+                            <p class="font-bold text-xs text-slate-600">Belum ada data guru & karyawan terdaftar</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Klik tombol <strong>+ Tambah Data Guru / Karyawan</strong> di atas untuk mendaftarkan.</p>
+                            <button onclick="openTeacherModal()" class="mt-3 px-3.5 py-1.5 rounded-xl bg-brand-600 text-white font-bold text-xs hover:bg-brand-700 shadow-sm cursor-pointer">
+                                + Tambah Data Sekarang
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                renderPaginationControls('teacherSavingsPagination', 1, 0, 0, 'changeTeacherSavingsPage');
+                safeLucide();
+                return;
+            }
+
+            const totalItems = displayTeachers.length;
+            const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
+
+            if (currentPageTeacherSavings > totalPages) currentPageTeacherSavings = totalPages;
+
+            const startIndex = (currentPageTeacherSavings - 1) * ITEMS_PER_PAGE;
+            const pagedTeachers = displayTeachers.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+            let html = '';
+            for (const tch of pagedTeachers) {
+                const safeNip = tch.nip.replace(/\W/g, '');
+                const isExpanded = expandedTeacherSavingsGroups.has(safeNip);
+                const txs = teacherSavingsTransactions.filter(t => t.teacherNip === tch.nip).reverse();
+
+                html += `
+                <tr class="hover:bg-slate-100 cursor-pointer border-b border-slate-200 bg-slate-50/70 transition-colors" onclick="toggleTeacherSavingsGroup('${safeNip}')">
+                    <td class="p-3.5 text-center w-10">
+                        <i data-lucide="chevron-down" id="icon_tch_${safeNip}" class="w-4 h-4 text-slate-500 transition-transform ${isExpanded ? '' : '-rotate-90'} inline-block"></i>
+                    </td>
+                    <td class="p-3.5">
+                        <div class="font-extrabold text-slate-900">${tch.name}</div>
+                        <div class="text-[10px] text-slate-500 font-mono">NIP / ID: ${tch.nip}</div>
+                    </td>
+                    <td class="p-3.5">
+                        <span class="px-2 py-0.5 text-[11px] font-bold rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200">
+                            ${tch.role || 'Guru / Karyawan'}
+                        </span>
+                    </td>
+                    <td class="p-3.5">
+                        <span class="px-2.5 py-1 text-[10px] font-extrabold text-brand-700 bg-brand-100/70 rounded-md border border-brand-200">
+                            ${txs.length} Mutasi
+                        </span>
+                    </td>
+                    <td class="p-3.5 text-right font-black text-emerald-600 pr-6">
+                        ${formatRp(tch.balance)}
+                    </td>
+                    <td class="p-3.5 text-center" onclick="event.stopPropagation()">
+                        <div class="flex items-center justify-center gap-1">
+                            <button onclick="openTeacherModal('${tch.nip}')" class="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-white rounded-lg transition-all" title="Edit Data Guru">
+                                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <button onclick="deleteTeacher('${tch.nip}')" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-white rounded-lg transition-all" title="Hapus Guru">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                `;
+
+                if (txs.length === 0) {
+                    html += `
+                    <tr class="child-tch-${safeNip} ${isExpanded ? '' : 'hidden'} border-b border-slate-100 bg-white">
+                        <td class="p-3 pl-8 font-semibold text-slate-400 text-[11px] border-l-2 border-brand-300" colspan="6">
+                            Belum ada riwayat mutasi tabungan untuk guru/karyawan ini.
+                        </td>
+                    </tr>
+                    `;
+                } else {
+                    txs.forEach(t => {
+                        html += `
+                        <tr class="hover:bg-slate-50 child-tch-${safeNip} ${isExpanded ? '' : 'hidden'} border-b border-slate-100 bg-white">
+                            <td class="p-3 pl-8 font-semibold text-slate-600 text-[11px] border-l-2 border-brand-400">${t.date}</td>
+                            <td class="p-3 text-slate-500 text-[11px] italic" colspan="2">↳ Catatan: ${t.note || '-'}</td>
+                            <td class="p-3">
+                                <span class="px-2 py-0.5 text-[10px] font-black rounded ${t.type === 'SETOR' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
+                                    ${t.type === 'SETOR' ? '+ SETOR' : '- TARIK'}
+                                </span>
+                            </td>
+                            <td class="p-3 text-right font-extrabold pr-6 ${t.type === 'SETOR' ? 'text-emerald-600' : 'text-rose-600'}">
+                                ${t.type === 'SETOR' ? '+' : '-'}${formatRp(t.amount)}
+                            </td>
+                            <td class="p-3 text-center" onclick="event.stopPropagation()">
+                                <button onclick="deleteTeacherSavings('${t.id}')" class="p-1 text-slate-300 hover:text-rose-600 transition-colors inline-block" title="Hapus Mutasi">
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        `;
+                    });
+                }
+            }
+
+            tbody.innerHTML = html;
+            renderPaginationControls('teacherSavingsPagination', currentPageTeacherSavings, totalPages, totalItems, 'changeTeacherSavingsPage');
+            safeLucide();
+        }
+
+        function onSearchTeacherSavingsChange() {
+            currentPageTeacherSavings = 1;
+            renderTeacherSavings();
+        }
+
+        function changeTeacherSavingsPage(page) {
+            currentPageTeacherSavings = page;
+            renderTeacherSavings();
+        }
+
+        function toggleTeacherSavingsGroup(safeNip) {
+            const rows = document.querySelectorAll(`.child-tch-${safeNip}`);
+            const icon = document.getElementById(`icon_tch_${safeNip}`);
+            let isHidden = false;
+
+            rows.forEach(row => {
+                if (row.classList.contains('hidden')) {
+                    row.classList.remove('hidden');
+                    isHidden = true;
+                } else {
+                    row.classList.add('hidden');
+                }
+            });
+
+            if (isHidden) {
+                expandedTeacherSavingsGroups.add(safeNip);
+                if (icon) icon.classList.remove('-rotate-90');
+            } else {
+                expandedTeacherSavingsGroups.delete(safeNip);
+                if (icon) icon.classList.add('-rotate-90');
+            }
+        }
+
+        function deleteTeacherSavings(id) {
+            const tx = teacherSavingsTransactions.find(t => t.id === id);
+            if (!tx) return;
+
+            openConfirmModal('Hapus Mutasi Guru/Karyawan', `Hapus mutasi ${tx.type} senilai ${formatRp(tx.amount)} atas nama ${tx.teacherName}?`, async () => {
+                teacherSavingsTransactions = teacherSavingsTransactions.filter(t => t.id !== id);
+                recalculateTeacherBalances();
+                saveDataToLocal();
+
+                if (supabaseClient) {
+                    try {
+                        await supabaseClient.from('teacher_savings_transactions').delete().eq('id', id);
+                    } catch (e) {
+                        console.warn('Supabase delete teacher savings error:', e);
+                    }
+                }
+
+                renderTeacherSavings();
+                populateTeacherDropdowns();
+                showToast('Mutasi transaksi guru/karyawan berhasil dihapus!', 'info');
+            });
+        }
+
+        // ==========================================
+        // TEACHER MASTER CRUD (MANUAL INPUT MODAL)
+        // ==========================================
+        function openTeacherModal(editNip = null) {
+            const modal = document.getElementById('teacherModal');
+            const titleEl = document.getElementById('teacherModalTitle');
+            const form = document.getElementById('teacherForm');
+            const nipInput = document.getElementById('tchNip');
+            const editNipHidden = document.getElementById('tchEditNip');
+            const nameInput = document.getElementById('tchName');
+            const jkInput = document.getElementById('tchJk');
+            const roleInput = document.getElementById('tchRole');
+            const phoneInput = document.getElementById('tchPhone');
+            const initBalContainer = document.getElementById('tchInitialBalanceContainer');
+            const initBalInput = document.getElementById('tchInitialBalance');
+
+            if (!modal || !form) return;
+
+            form.reset();
+
+            if (editNip) {
+                const teacher = teachers.find(t => t.nip === editNip);
+                if (!teacher) return;
+
+                if (titleEl) titleEl.innerText = 'Edit Data Guru / Karyawan';
+                if (editNipHidden) editNipHidden.value = teacher.nip;
+                if (nipInput) {
+                    nipInput.value = teacher.nip;
+                    nipInput.disabled = true;
+                }
+                if (nameInput) nameInput.value = teacher.name || '';
+                if (jkInput) jkInput.value = teacher.jk || 'L';
+                if (roleInput) roleInput.value = teacher.role || '';
+                if (phoneInput) phoneInput.value = teacher.phone || '';
+                if (initBalContainer) initBalContainer.classList.add('hidden');
+            } else {
+                if (titleEl) titleEl.innerText = 'Tambah Data Guru / Karyawan';
+                if (editNipHidden) editNipHidden.value = '';
+                if (nipInput) {
+                    nipInput.value = '';
+                    nipInput.disabled = false;
+                    generateAutoTeacherNip();
+                }
+                if (initBalContainer) initBalContainer.classList.remove('hidden');
+                if (initBalInput) initBalInput.value = '';
+            }
+
+            modal.classList.remove('hidden');
+            safeLucide();
+        }
+
+        function closeTeacherModal() {
+            const modal = document.getElementById('teacherModal');
+            if (modal) modal.classList.add('hidden');
+            const nipInput = document.getElementById('tchNip');
+            if (nipInput) nipInput.disabled = false;
+        }
+
+        function generateAutoTeacherNip() {
+            const nipInput = document.getElementById('tchNip');
+            if (!nipInput) return;
+
+            // Generate clean prefix GK-001, GK-002, etc.
+            let nextNum = teachers.length + 1;
+            let autoId = 'GK-' + String(nextNum).padStart(3, '0');
+            while (teachers.some(t => t.nip === autoId)) {
+                nextNum++;
+                autoId = 'GK-' + String(nextNum).padStart(3, '0');
+            }
+            nipInput.value = autoId;
+        }
+
+        async function handleTeacherFormSubmit(e) {
+            e.preventDefault();
+            const editNip = document.getElementById('tchEditNip')?.value;
+            const nip = document.getElementById('tchNip')?.value.trim();
+            const name = document.getElementById('tchName')?.value.trim();
+            const jk = document.getElementById('tchJk')?.value || 'L';
+            const role = document.getElementById('tchRole')?.value.trim() || 'Guru';
+            const phone = document.getElementById('tchPhone')?.value.trim() || '';
+            const initBalStr = document.getElementById('tchInitialBalance')?.value || '';
+            const initialBalance = parseRupiahInput(initBalStr);
+
+            if (!nip || !name) {
+                showToast('NIP / ID dan Nama Lengkap wajib diisi!', 'warning');
+                return;
+            }
+
+            if (editNip) {
+                // Update Existing Teacher
+                const tch = teachers.find(t => t.nip === editNip);
+                if (tch) {
+                    tch.name = name;
+                    tch.jk = jk;
+                    tch.role = role;
+                    tch.phone = phone;
+
+                    // Update teacher name in their transactions as well
+                    teacherSavingsTransactions.forEach(tx => {
+                        if (tx.teacherNip === tch.nip) {
+                            tx.teacherName = name;
+                        }
+                    });
+
+                    saveDataToLocal();
+
+                    if (supabaseClient) {
+                        try {
+                            await supabaseClient.from('teachers').update({
+                                name: tch.name,
+                                jk: tch.jk,
+                                role: tch.role,
+                                phone: tch.phone
+                            }).eq('nip', tch.nip);
+                        } catch (err) {
+                            console.warn('Supabase update teacher error:', err);
+                        }
+                    }
+
+                    showToast('Data guru / karyawan berhasil diperbarui!', 'success');
+                }
+            } else {
+                // Create New Teacher
+                if (teachers.some(t => t.nip === nip)) {
+                    showToast(`NIP / ID ${nip} sudah terdaftar sebelumnya!`, 'error');
+                    return;
+                }
+
+                const newTeacher = {
+                    id: 'tch_' + Date.now(),
+                    nip: nip,
+                    name: name,
+                    jk: jk,
+                    role: role,
+                    phone: phone,
+                    balance: 0,
+                    created_at: new Date().toISOString()
+                };
+
+                teachers.push(newTeacher);
+
+                // Jika ada setoran awal
+                if (initialBalance > 0) {
+                    const initTx = {
+                        id: 'tx_tch_' + Date.now(),
+                        teacherNip: newTeacher.nip,
+                        teacherName: newTeacher.name,
+                        type: 'SETOR',
+                        amount: initialBalance,
+                        date: getTodayIsoDate(),
+                        note: 'Setoran awal pembukaan tabungan'
+                    };
+                    teacherSavingsTransactions.push(initTx);
+                    newTeacher.balance = initialBalance;
+
+                    if (supabaseClient) {
+                        try {
+                            await supabaseClient.from('teacher_savings_transactions').insert([{
+                                id: initTx.id,
+                                teacher_nip: initTx.teacherNip,
+                                teacher_name: initTx.teacherName,
+                                type: initTx.type,
+                                amount: initTx.amount,
+                                date: initTx.date,
+                                note: initTx.note
+                            }]);
+                        } catch (err) {
+                            console.warn('Supabase insert initial teacher savings error:', err);
+                        }
+                    }
+                }
+
+                saveDataToLocal();
+
+                if (supabaseClient) {
+                    try {
+                        await supabaseClient.from('teachers').insert([{
+                            id: newTeacher.id,
+                            nip: newTeacher.nip,
+                            name: newTeacher.name,
+                            jk: newTeacher.jk,
+                            role: newTeacher.role,
+                            phone: newTeacher.phone,
+                            balance: newTeacher.balance
+                        }]);
+                    } catch (err) {
+                        console.warn('Supabase insert teacher error:', err);
+                    }
+                }
+
+                showToast(`Guru / Karyawan ${newTeacher.name} berhasil ditambahkan!`, 'success');
+            }
+
+            closeTeacherModal();
+            renderTeacherSavings();
+            populateTeacherDropdowns();
+
+            // Auto-select the newly added teacher in dropdown
+            const selectEl = document.getElementById('txTeacherSelect');
+            if (selectEl) {
+                selectEl.value = nip;
+                handleTeacherSelectChange();
+            }
+        }
+
+        function deleteTeacher(nip) {
+            const tch = teachers.find(t => t.nip === nip);
+            if (!tch) return;
+
+            const txCount = teacherSavingsTransactions.filter(t => t.teacherNip === nip).length;
+            const extraMsg = txCount > 0 ? ` Perhatian: Seluruh ${txCount} mutasi transaksi guru ini juga akan terhapus!` : '';
+
+            openConfirmModal('Hapus Guru / Karyawan', `Apakah Anda yakin ingin menghapus ${tch.name} (${tch.nip}) dari data penabung?${extraMsg}`, async () => {
+                teachers = teachers.filter(t => t.nip !== nip);
+                teacherSavingsTransactions = teacherSavingsTransactions.filter(t => t.teacherNip !== nip);
+                saveDataToLocal();
+
+                if (supabaseClient) {
+                    try {
+                        await supabaseClient.from('teachers').delete().eq('nip', nip);
+                    } catch (err) {
+                        console.warn('Supabase delete teacher error:', err);
+                    }
+                }
+
+                renderTeacherSavings();
+                populateTeacherDropdowns();
+                showToast(`Data guru / karyawan ${tch.name} berhasil dihapus.`, 'info');
+            });
+        }
+
+        // ==========================================
+        // FITUR EXCEL TABUNGAN GURU & KARYAWAN
+        // ==========================================
+        function downloadTeacherSavingsTemplate() {
+            const templateData = [
+                {
+                    'NIP / ID': '198501152010011002',
+                    'Nama': 'Drs. Supriyanto, M.Pd.',
+                    'Jabatan': 'Guru Matematika',
+                    'Tipe': 'SETOR',
+                    'Nominal': 100000,
+                    'Tanggal': '2026-07-25',
+                    'Catatan': 'Setoran tabungan bulanan'
+                },
+                {
+                    'NIP / ID': '198501152010011002',
+                    'Nama': 'Drs. Supriyanto, M.Pd.',
+                    'Jabatan': 'Guru Matematika',
+                    'Tipe': 'SETOR',
+                    'Nominal': 50000,
+                    'Tanggal': '2026-08-10',
+                    'Catatan': 'Setoran tabungan bulanan'
+                },
+                {
+                    'NIP / ID': 'GK-002',
+                    'Nama': 'Ratna Sari, S.Kom.',
+                    'Jabatan': 'Tata Usaha (TU)',
+                    'Tipe': 'SETOR',
+                    'Nominal': 75000,
+                    'Tanggal': '2026-08-01',
+                    'Catatan': 'Setoran tabungan gaji'
+                },
+                {
+                    'NIP / ID': 'GK-003',
+                    'Nama': 'Bambang Irawan',
+                    'Jabatan': 'Petugas Keamanan',
+                    'Tipe': 'SETOR',
+                    'Nominal': 50000,
+                    'Tanggal': '2026-08-05',
+                    'Catatan': 'Setoran tunai'
+                },
+                {
+                    'NIP / ID': 'GK-003',
+                    'Nama': 'Bambang Irawan',
+                    'Jabatan': 'Petugas Keamanan',
+                    'Tipe': 'TARIK',
+                    'Nominal': 25000,
+                    'Tanggal': '2026-08-20',
+                    'Catatan': 'Tarik tunai keperluan darurat'
+                }
+            ];
+
+            const ws = XLSX.utils.json_to_sheet(templateData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Tabungan_Guru");
+            XLSX.writeFile(wb, "Template_Impor_Tabungan_Guru_Karyawan.xlsx");
+            showToast('Template Excel transaksi tabungan guru & karyawan berhasil diunduh!', 'success');
+        }
+
+        function handleTeacherSavingsExcelUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const data = new Uint8Array(evt.target.result);
+                    const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false });
+
+                    processTeacherSavingsExcelData(json);
+                } catch (err) {
+                    showToast('Gagal membaca berkas Excel tabungan guru: ' + err.message, 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            e.target.value = '';
+        }
+
+        function processTeacherSavingsExcelData(rows) {
+            if (!rows || rows.length <= 1) {
+                showToast('File Excel kosong atau format tidak sesuai!', 'error');
+                return;
+            }
+
+            const headerRow = rows[0].map(h => String(h || '').toLowerCase().trim());
+            let colNip = headerRow.findIndex(h => h.includes('nip') || h.includes('id') || h.includes('induk'));
+            let colName = headerRow.findIndex(h => h.includes('nama') || h.includes('guru') || h.includes('karyawan'));
+            let colRole = headerRow.findIndex(h => h.includes('jabatan') || h.includes('bagian') || h.includes('posisi') || h.includes('peran'));
+            let colType = headerRow.findIndex(h => h.includes('tipe') || h.includes('jenis') || h.includes('type'));
+            let colAmount = headerRow.findIndex(h => h.includes('nominal') || h.includes('jumlah') || h.includes('amount') || h.includes('rp'));
+            let colDate = headerRow.findIndex(h => h.includes('tanggal') || h.includes('tgl') || h.includes('date'));
+            let colNote = headerRow.findIndex(h => h.includes('catatan') || h.includes('keterangan') || h.includes('note') || h.includes('ket'));
+
+            if (colNip === -1) colNip = 0;
+            if (colName === -1) colName = 1;
+            if (colType === -1) colType = 3;
+            if (colAmount === -1) colAmount = 4;
+            if (colDate === -1) colDate = 5;
+            if (colNote === -1) colNote = 6;
+
+            tempTeacherSavingsImportData = [];
+            tempTeacherSavingsNewTeachers = [];
+            const tempNewTeachersMap = new Map();
+
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (!row || row.length === 0) continue;
+
+                const rawNip = String(row[colNip] || '').trim();
+                const rawName = String(row[colName] || '').trim();
+                const rawRole = colRole !== -1 ? String(row[colRole] || '').trim() : 'Guru / Karyawan';
+                const rawType = String(row[colType] || '').trim().toUpperCase();
+                const rawAmount = row[colAmount];
+                const rawDate = row[colDate];
+                const rawNote = String(row[colNote] || '').trim();
+
+                let amount = 0;
+                if (typeof rawAmount === 'number') {
+                    amount = Math.abs(rawAmount);
+                } else {
+                    const cleanAmtStr = String(rawAmount || '').replace(/[^0-9]/g, '');
+                    amount = Number(cleanAmtStr) || 0;
+                }
+
+                if (amount <= 0 && !rawNip && !rawName) continue;
+
+                const type = (rawType.includes('TARIK') || rawType.includes('KELUAR') || rawType.includes('DEBIT')) ? 'TARIK' : 'SETOR';
+                const date = parseSavingsDate(rawDate);
+                const note = rawNote || (type === 'SETOR' ? 'Setoran tunai guru & karyawan' : 'Penarikan tunai');
+
+                // Kecocokan Guru
+                let matchedTeacher = null;
+                let matchReason = '';
+
+                if (rawNip) {
+                    matchedTeacher = teachers.find(t => String(t.nip).trim() === rawNip);
+                    if (matchedTeacher) matchReason = 'NIP Cocok (' + rawNip + ')';
+                }
+
+                if (!matchedTeacher && rawName) {
+                    const lowerSearchName = rawName.toLowerCase();
+                    matchedTeacher = teachers.find(t => String(t.name || '').trim().toLowerCase() === lowerSearchName);
+                    if (matchedTeacher) matchReason = 'Nama Guru Cocok';
+                }
+
+                if (!matchedTeacher) {
+                    if (rawNip && tempNewTeachersMap.has(rawNip)) {
+                        matchedTeacher = tempNewTeachersMap.get(rawNip);
+                        matchReason = 'Guru Baru (Antrean)';
+                    } else if (rawName && tempNewTeachersMap.has(rawName.toLowerCase())) {
+                        matchedTeacher = tempNewTeachersMap.get(rawName.toLowerCase());
+                        matchReason = 'Guru Baru (Antrean)';
+                    }
+                }
+
+                let finalNip = '';
+                let finalName = '';
+                let isNewTeacher = false;
+
+                if (matchedTeacher) {
+                    finalNip = matchedTeacher.nip;
+                    finalName = matchedTeacher.name;
+                } else {
+                    isNewTeacher = true;
+                    finalNip = rawNip || ('GK-' + Math.floor(100 + Math.random() * 900));
+                    finalName = rawName || ('Guru/Karyawan ' + finalNip);
+                    matchReason = 'Guru Baru (Didaftarkan)';
+
+                    const newTchObj = {
+                        id: 'tch_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+                        nip: finalNip,
+                        name: finalName,
+                        jk: 'L',
+                        role: rawRole || 'Guru / Karyawan',
+                        phone: '',
+                        balance: 0
+                    };
+
+                    if (rawNip) tempNewTeachersMap.set(rawNip, newTchObj);
+                    if (rawName) tempNewTeachersMap.set(rawName.toLowerCase(), newTchObj);
+                    tempTeacherSavingsNewTeachers.push(newTchObj);
+                }
+
+                tempTeacherSavingsImportData.push({
+                    teacherNip: finalNip,
+                    teacherName: finalName,
+                    type: type,
+                    amount: amount,
+                    date: date,
+                    note: note,
+                    matchReason: matchReason,
+                    isNewTeacher: isNewTeacher
+                });
+            }
+
+            if (tempTeacherSavingsImportData.length === 0) {
+                showToast('Tidak ada transaksi valid ditemukan dalam file Excel!', 'error');
+                return;
+            }
+
+            // Tampilkan Pratinjau di Modal
+            const tbody = document.getElementById('teacherSavingsExcelPreviewTableBody');
+            const totalAmount = tempTeacherSavingsImportData.reduce((acc, t) => acc + t.amount, 0);
+            const matchedCount = tempTeacherSavingsImportData.filter(t => !t.isNewTeacher).length;
+            const newCount = tempTeacherSavingsNewTeachers.length;
+
+            document.getElementById('previewTeacherSavingsTotalRows').innerText = `${tempTeacherSavingsImportData.length} baris`;
+            document.getElementById('previewTeacherSavingsTotalAmount').innerText = formatRp(totalAmount);
+            document.getElementById('previewTeacherSavingsMatchedCount').innerText = `${matchedCount} transaksi`;
+            document.getElementById('previewTeacherSavingsNewCount').innerText = `${newCount} orang`;
+            document.getElementById('teacherSavingsExcelImportCount').innerText = `${tempTeacherSavingsImportData.length} transaksi siap diimpor ke sistem`;
+
+            tbody.innerHTML = tempTeacherSavingsImportData.map((tx, idx) => {
+                const matchBadge = tx.isNewTeacher 
+                    ? '<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">🆕 Baru Didaftarkan</span>'
+                    : '<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">✅ ' + tx.matchReason + '</span>';
+
+                const typeBadge = tx.type === 'SETOR'
+                    ? '<span class="px-2 py-0.5 text-[10px] font-black rounded-md bg-emerald-100 text-emerald-700">+ SETOR</span>'
+                    : '<span class="px-2 py-0.5 text-[10px] font-black rounded-md bg-rose-100 text-rose-700">- TARIK</span>';
+
+                return `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="p-2.5 pl-4 font-semibold text-slate-500">${idx + 1}</td>
+                    <td class="p-2.5 font-semibold text-slate-600">${tx.date}</td>
+                    <td class="p-2.5 font-mono font-bold text-slate-800">${tx.teacherNip}</td>
+                    <td class="p-2.5 font-bold text-slate-900">${tx.teacherName}</td>
+                    <td class="p-2.5">${matchBadge}</td>
+                    <td class="p-2.5">${typeBadge}</td>
+                    <td class="p-2.5 text-right font-black ${tx.type === 'SETOR' ? 'text-emerald-600' : 'text-rose-600'}">${formatRp(tx.amount)}</td>
+                    <td class="p-2.5 pr-4 text-slate-600 text-xs">${tx.note}</td>
+                </tr>
+                `;
+            }).join('');
+
+            document.getElementById('teacherSavingsExcelPreviewModal').classList.remove('hidden');
+            safeLucide();
+        }
+
+        function closeTeacherSavingsExcelModal() {
+            document.getElementById('teacherSavingsExcelPreviewModal').classList.add('hidden');
+            tempTeacherSavingsImportData = [];
+            tempTeacherSavingsNewTeachers = [];
+        }
+
+        async function confirmTeacherSavingsExcelImport() {
+            if (tempTeacherSavingsImportData.length === 0) return;
+
+            const btn = document.getElementById('btnConfirmTeacherSavingsImport');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Menyimpan Transaksi...</span>';
+                safeLucide();
+            }
+
+            try {
+                // 1. Simpan guru baru terlebih dahulu jika ada
+                if (tempTeacherSavingsNewTeachers.length > 0) {
+                    for (const t of tempTeacherSavingsNewTeachers) {
+                        if (!teachers.some(x => x.nip === t.nip)) {
+                            teachers.push(t);
+                        }
+                    }
+
+                    if (supabaseClient) {
+                        try {
+                            const newTchPayload = tempTeacherSavingsNewTeachers.map(t => ({
+                                id: t.id,
+                                nip: t.nip,
+                                name: t.name,
+                                jk: t.jk,
+                                role: t.role,
+                                phone: t.phone || '',
+                                balance: 0
+                            }));
+                            await supabaseClient.from('teachers').upsert(newTchPayload, { onConflict: 'nip' });
+                        } catch (err) {
+                            console.warn('Supabase auto-create teachers warning:', err);
+                        }
+                    }
+                }
+
+                // 2. Tambahkan seluruh transaksi ke array
+                const newTxs = tempTeacherSavingsImportData.map(item => ({
+                    id: 'tx_tch_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8),
+                    teacherNip: item.teacherNip,
+                    teacherName: item.teacherName,
+                    type: item.type,
+                    amount: item.amount,
+                    date: item.date,
+                    note: item.note
+                }));
+
+                teacherSavingsTransactions.push(...newTxs);
+
+                // 3. Simpan transaksi ke Supabase jika aktif
+                if (supabaseClient) {
+                    try {
+                        const txPayload = newTxs.map(t => ({
+                            id: t.id,
+                            teacher_nip: t.teacherNip,
+                            teacher_name: t.teacherName,
+                            type: t.type,
+                            amount: t.amount,
+                            date: t.date,
+                            note: t.note
+                        }));
+                        await supabaseClient.from('teacher_savings_transactions').insert(txPayload);
+                    } catch (err) {
+                        console.warn('Supabase teacher savings insert warning:', err);
+                    }
+                }
+
+                // 4. Hitung ulang saldo setiap guru & simpan ke penyimpanan lokal
+                recalculateTeacherBalances();
+                saveDataToLocal();
+
+                // 5. Render ulang tampilan
+                renderTeacherSavings();
+                populateTeacherDropdowns();
+
+                const newTchMsg = tempTeacherSavingsNewTeachers.length > 0 
+                    ? ` (${tempTeacherSavingsNewTeachers.length} guru/karyawan baru otomatis didaftarkan)` 
+                    : '';
+                showToast(`Sukses! ${newTxs.length} transaksi tabungan guru berhasil diimpor!${newTchMsg}`, 'success');
+                closeTeacherSavingsExcelModal();
+            } catch (e) {
+                showToast(`Gagal mengimpor transaksi guru: ${e.message}`, 'error');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i><span>Konfirmasi & Simpan Semua</span>';
+                    safeLucide();
+                }
+            }
         }
 
         // ==========================================
@@ -5056,12 +6510,20 @@
 
         function handleReportTypeChange() {
             const repType = document.getElementById('repType')?.value;
-            const container = document.getElementById('repStudentFilterContainer');
+            const studentContainer = document.getElementById('repStudentFilterContainer');
+            const teacherContainer = document.getElementById('repTeacherFilterContainer');
+
             if (repType === 'STUDENT') {
-                if (container) container.classList.remove('hidden');
+                if (studentContainer) studentContainer.classList.remove('hidden');
+                if (teacherContainer) teacherContainer.classList.add('hidden');
                 populateReportStudentDropdown();
+            } else if (repType === 'TEACHER') {
+                if (studentContainer) studentContainer.classList.add('hidden');
+                if (teacherContainer) teacherContainer.classList.remove('hidden');
+                populateReportTeacherDropdown();
             } else {
-                if (container) container.classList.add('hidden');
+                if (studentContainer) studentContainer.classList.add('hidden');
+                if (teacherContainer) teacherContainer.classList.add('hidden');
             }
             currentPageReport = 1;
         }
@@ -5097,6 +6559,42 @@
 
             if (searchText && filteredStudents.length === 1) {
                 select.value = filteredStudents[0].nis;
+                currentPageReport = 1;
+                applyReportFilter();
+            }
+        }
+
+        function populateReportTeacherDropdown() {
+            const select = document.getElementById('repTeacherSelect');
+            const searchInput = document.getElementById('repTeacherSearch');
+            if (!select) return;
+
+            const currentSelectedNip = select.value;
+            const searchText = (searchInput?.value || '').toLowerCase().trim();
+
+            let filteredTeachers = teachers;
+
+            if (searchText) {
+                filteredTeachers = filteredTeachers.filter(t => 
+                    String(t.name || '').toLowerCase().includes(searchText) || 
+                    String(t.nip || '').toLowerCase().includes(searchText) ||
+                    String(t.role || '').toLowerCase().includes(searchText)
+                );
+            }
+
+            if (filteredTeachers.length === 0) {
+                select.innerHTML = '<option value="">-- Guru / Karyawan Tidak Ditemukan --</option>';
+            } else {
+                select.innerHTML = '<option value="">-- Pilih Guru / Karyawan --</option>' + 
+                    filteredTeachers.map(t => {
+                        const isSelected = String(t.nip) === String(currentSelectedNip);
+                        const roleInfo = t.role ? ` • ${t.role}` : '';
+                        return `<option value="${t.nip}" ${isSelected ? 'selected' : ''}>${t.name} (${t.nip}${roleInfo})</option>`;
+                    }).join('');
+            }
+
+            if (searchText && filteredTeachers.length === 1) {
+                select.value = filteredTeachers[0].nip;
                 currentPageReport = 1;
                 applyReportFilter();
             }
@@ -5159,6 +6657,11 @@
                 renderSavingsReport(startDate, endDate, isForPrint);
             } else if (type === 'STUDENT') {
                 renderStudentRecapReport(startDate, endDate, isForPrint);
+            } else if (type === 'TEACHER_SAVINGS') {
+                document.getElementById('repSubTitle').innerText = 'Laporan Rekapitulasi Mutasi Kas Tabungan Guru & Karyawan';
+                renderTeacherSavingsReport(startDate, endDate, isForPrint);
+            } else if (type === 'TEACHER') {
+                renderTeacherRecapReport(startDate, endDate, isForPrint);
             } else {
                 document.getElementById('repSubTitle').innerText = 'Laporan Rekapitulasi Pendapatan & Pengeluaran Parkir';
                 renderParkingReport(startDate, endDate, isForPrint);
@@ -5507,6 +7010,347 @@
             }
         }
 
+        // Laporan Rekapitulasi Kas Tabungan Guru & Karyawan
+        function renderTeacherSavingsReport(startDate, endDate, isForPrint = false) {
+            let filtered = [...teacherSavingsTransactions];
+            if (startDate) filtered = filtered.filter(t => t.date >= startDate);
+            if (endDate) filtered = filtered.filter(t => t.date <= endDate);
+
+            const totalSetor = filtered.filter(t => t.type === 'SETOR').reduce((a, b) => a + Number(b.amount || 0), 0);
+            const totalTarik = filtered.filter(t => t.type === 'TARIK').reduce((a, b) => a + Number(b.amount || 0), 0);
+            const netMutasi = totalSetor - totalTarik;
+
+            document.getElementById('reportSummaryMetrics').innerHTML = `
+                <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-200">
+                    <p class="text-xs font-bold text-emerald-700">Total Setoran Kas (+)</p>
+                    <p class="text-lg font-black text-emerald-900 mt-0.5">${formatRp(totalSetor)}</p>
+                </div>
+                <div class="p-4 bg-rose-50 rounded-2xl border border-rose-200">
+                    <p class="text-xs font-bold text-rose-700">Total Penarikan Kas (-)</p>
+                    <p class="text-lg font-black text-rose-900 mt-0.5">${formatRp(totalTarik)}</p>
+                </div>
+                <div class="p-4 bg-brand-50 rounded-2xl border border-brand-200">
+                    <p class="text-xs font-bold text-brand-700">Net Mutasi Kas Guru/Karyawan</p>
+                    <p class="text-lg font-black ${netMutasi >= 0 ? 'text-brand-900' : 'text-rose-700'} mt-0.5">${formatRp(netMutasi)}</p>
+                </div>
+            `;
+
+            const headerColTotal = (startDate || endDate) ? 'Total Tabungan (Net Periode)' : 'Total Jumlah Tabungan';
+
+            if (isForPrint) {
+                document.getElementById('reportTableHeader').innerHTML = `
+                    <tr>
+                        <th class="p-3 w-12 text-center border-b border-slate-300">No</th>
+                        <th class="p-3 border-b border-slate-300">Nama Guru/Karyawan / NIP</th>
+                        <th class="p-3 border-b border-slate-300">Jabatan / Role</th>
+                        <th class="p-3 border-b border-slate-300 text-center">Jumlah Transaksi</th>
+                        <th class="p-3 border-b border-slate-300 text-right pr-4">${headerColTotal}</th>
+                    </tr>
+                `;
+            } else {
+                document.getElementById('reportTableHeader').innerHTML = `
+                    <tr>
+                        <th class="p-3 w-10 text-center border-b border-slate-300"></th>
+                        <th class="p-3 border-b border-slate-300">Nama Guru/Karyawan / NIP</th>
+                        <th class="p-3 border-b border-slate-300">Jabatan / Role</th>
+                        <th class="p-3 border-b border-slate-300">Jumlah Transaksi</th>
+                        <th class="p-3 border-b border-slate-300 text-right pr-4">${headerColTotal}</th>
+                    </tr>
+                `;
+            }
+
+            const grouped = {};
+            filtered.forEach(t => {
+                if (!grouped[t.teacherNip]) {
+                    grouped[t.teacherNip] = {
+                        teacherName: t.teacherName,
+                        transactions: []
+                    };
+                }
+                grouped[t.teacherNip].transactions.push(t);
+            });
+
+            const uniqueNips = Object.keys(grouped);
+            const totalItems = uniqueNips.length;
+            const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
+
+            if (currentPageReport > totalPages) currentPageReport = totalPages;
+
+            const startIndex = (currentPageReport - 1) * ITEMS_PER_PAGE;
+            const pagedNips = isForPrint ? uniqueNips : uniqueNips.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+            const tbody = document.getElementById('reportTableBody');
+            if (totalItems === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">Tidak ada data transaksi guru & karyawan untuk periode ini</td></tr>`;
+                document.getElementById('reportTableFooter').innerHTML = '';
+                renderPaginationControls('reportPagination', 1, 0, 0, 'changeReportPage');
+                return;
+            }
+
+            let html = '';
+            let rowIndex = startIndex;
+
+            for (const nip of pagedNips) {
+                rowIndex++;
+                const group = grouped[nip];
+                const tch = teachers.find(t => t.nip === nip);
+                const role = tch ? tch.role : 'Guru / Karyawan';
+                const safeNip = nip.replace(/\W/g, '');
+                const isExpanded = expandedReportGroups.has(safeNip);
+
+                const groupSetor = group.transactions.filter(t => t.type === 'SETOR').reduce((a, b) => a + Number(b.amount || 0), 0);
+                const groupTarik = group.transactions.filter(t => t.type === 'TARIK').reduce((a, b) => a + Number(b.amount || 0), 0);
+                const groupNet = groupSetor - groupTarik;
+
+                if (isForPrint) {
+                    html += `
+                    <tr class="border-b border-slate-200">
+                        <td class="p-3 text-center w-12 font-bold text-slate-700">${rowIndex}</td>
+                        <td class="p-3">
+                            <div class="font-extrabold text-slate-900">${group.teacherName}</div>
+                            <div class="text-[10px] text-slate-500 font-mono">NIP/ID: ${nip}</div>
+                        </td>
+                        <td class="p-3 font-bold text-slate-700">${role}</td>
+                        <td class="p-3 text-center">
+                            <span class="px-2 py-0.5 text-[10px] font-extrabold text-indigo-700 bg-indigo-100 rounded">
+                                ${group.transactions.length} Mutasi
+                            </span>
+                        </td>
+                        <td class="p-3 text-right font-black ${groupNet >= 0 ? 'text-emerald-600' : 'text-rose-600'} pr-4">
+                            ${groupNet >= 0 ? '+' : ''}${formatRp(groupNet)}
+                        </td>
+                    </tr>
+                    `;
+                } else {
+                    html += `
+                    <tr class="hover:bg-slate-100 cursor-pointer border-b border-slate-200 bg-slate-50 transition-colors" onclick="toggleTeacherReportGroup('${safeNip}')">
+                        <td class="p-3 text-center w-10">
+                            <i data-lucide="chevron-down" id="icon_tch_rep_group_${safeNip}" class="w-4 h-4 text-slate-500 transition-transform ${isExpanded ? '' : '-rotate-90'} inline-block"></i>
+                        </td>
+                        <td class="p-3">
+                            <div class="font-extrabold text-slate-900">${group.teacherName}</div>
+                            <div class="text-[10px] text-slate-500 font-mono">NIP/ID: ${nip}</div>
+                        </td>
+                        <td class="p-3 font-bold text-slate-700">${role}</td>
+                        <td class="p-3">
+                            <span class="px-2 py-0.5 text-[10px] font-extrabold text-indigo-700 bg-indigo-100 rounded">
+                                ${group.transactions.length} Mutasi
+                            </span>
+                        </td>
+                        <td class="p-3 text-right font-black ${groupNet >= 0 ? 'text-emerald-600' : 'text-rose-600'} pr-4">
+                            ${groupNet >= 0 ? '+' : ''}${formatRp(groupNet)}
+                        </td>
+                    </tr>
+                    `;
+
+                    group.transactions.forEach(t => {
+                        html += `
+                        <tr class="hover:bg-slate-50 child-tch-rep-group-${safeNip} ${isExpanded ? '' : 'hidden'} border-b border-slate-100 bg-white">
+                            <td class="p-2.5 pl-6 font-semibold text-slate-600 text-[11px] border-l-2 border-indigo-300">${t.date}</td>
+                            <td class="p-2.5 text-slate-500 text-[11px] italic" colspan="2">Catatan: ${t.note || '-'}</td>
+                            <td class="p-2.5">
+                                <span class="px-2 py-0.5 text-[10px] font-black rounded ${t.type === 'SETOR' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
+                                    ${t.type === 'SETOR' ? '+ SETOR' : '- TARIK'}
+                                </span>
+                            </td>
+                            <td class="p-2.5 text-right font-bold pr-4 ${t.type === 'SETOR' ? 'text-emerald-600' : 'text-rose-600'}">
+                                ${t.type === 'SETOR' ? '+' : '-'}${formatRp(t.amount)}
+                            </td>
+                        </tr>
+                        `;
+                    });
+                }
+            }
+
+            tbody.innerHTML = html;
+
+            document.getElementById('reportTableFooter').innerHTML = `
+                <tr>
+                    <td colspan="4" class="p-3 text-right font-extrabold text-slate-800">NET MUTASI KAS PERIODE:</td>
+                    <td class="p-3 text-right font-black ${netMutasi >= 0 ? 'text-emerald-700' : 'text-rose-700'} pr-4">${formatRp(netMutasi)}</td>
+                </tr>
+            `;
+
+            if (!isForPrint) {
+                renderPaginationControls('reportPagination', currentPageReport, totalPages, totalItems, 'changeReportPage');
+            }
+            safeLucide();
+        }
+
+        function toggleTeacherReportGroup(safeNip) {
+            const rows = document.querySelectorAll(`.child-tch-rep-group-${safeNip}`);
+            const icon = document.getElementById(`icon_tch_rep_group_${safeNip}`);
+            let isHidden = false;
+            
+            rows.forEach(row => {
+                if (row.classList.contains('hidden')) {
+                    row.classList.remove('hidden');
+                    isHidden = true;
+                } else {
+                    row.classList.add('hidden');
+                }
+            });
+
+            if (isHidden) {
+                expandedReportGroups.add(safeNip);
+                if (icon) icon.classList.remove('-rotate-90');
+            } else {
+                expandedReportGroups.delete(safeNip);
+                if (icon) icon.classList.add('-rotate-90');
+            }
+        }
+
+        // Buku Tabungan Guru / Karyawan (Digital Passbook)
+        function renderTeacherRecapReport(startDate, endDate, isForPrint = false) {
+            const nip = document.getElementById('repTeacherSelect')?.value;
+            const teacher = teachers.find(t => t.nip === nip);
+
+            if (!teacher) {
+                document.getElementById('repSubTitle').innerText = 'Buku Tabungan Guru & Karyawan - Silakan Pilih Guru / Karyawan';
+                document.getElementById('reportSummaryMetrics').innerHTML = `
+                    <div class="col-span-1 sm:col-span-3 p-4 bg-amber-50 rounded-2xl border border-amber-200 text-amber-900 text-xs text-center font-bold">
+                        Pilih guru / karyawan pada menu filter di atas untuk melihat buku tabungan individu lengkap dengan saldo berjalan.
+                    </div>
+                `;
+                document.getElementById('reportTableHeader').innerHTML = '';
+                document.getElementById('reportTableBody').innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-400">Silakan pilih guru / karyawan terlebih dahulu</td></tr>';
+                document.getElementById('reportTableFooter').innerHTML = '';
+                renderPaginationControls('reportPagination', 1, 0, 0, 'changeReportPage');
+                return;
+            }
+
+            const periodStr = (startDate && endDate) ? `Periode: ${startDate} s.d ${endDate}` : 'Periode: Seluruh Riwayat';
+            document.getElementById('repSubTitle').innerText = `Buku Tabungan: ${teacher.name} (NIP/ID: ${teacher.nip} • ${teacher.role || 'Guru/Karyawan'})`;
+
+            let allTeacherTxs = teacherSavingsTransactions.filter(t => t.teacherNip === teacher.nip)
+                .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            let openingBalance = 0;
+            if (startDate) {
+                const priorTxs = allTeacherTxs.filter(t => t.date < startDate);
+                openingBalance = priorTxs.reduce((acc, t) => acc + (t.type === 'SETOR' ? Number(t.amount || 0) : -Number(t.amount || 0)), 0);
+            }
+
+            let filteredTxs = allTeacherTxs;
+            if (startDate) filteredTxs = filteredTxs.filter(t => t.date >= startDate);
+            if (endDate) filteredTxs = filteredTxs.filter(t => t.date <= endDate);
+
+            let totalSetor = 0;
+            let totalTarik = 0;
+            let currentRunBal = openingBalance;
+
+            const rowsData = filteredTxs.map((t, idx) => {
+                const amt = Number(t.amount || 0);
+                if (t.type === 'SETOR') {
+                    totalSetor += amt;
+                    currentRunBal += amt;
+                } else {
+                    totalTarik += amt;
+                    currentRunBal -= amt;
+                }
+                return {
+                    index: idx + 1,
+                    tx: t,
+                    runBal: currentRunBal
+                };
+            });
+
+            const endingBalance = currentRunBal;
+
+            document.getElementById('reportSummaryMetrics').innerHTML = `
+                <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-200">
+                    <p class="text-xs font-bold text-emerald-700">Total Setoran Periode (+)</p>
+                    <p class="text-lg font-black text-emerald-900 mt-0.5">${formatRp(totalSetor)}</p>
+                </div>
+                <div class="p-4 bg-rose-50 rounded-2xl border border-rose-200">
+                    <p class="text-xs font-bold text-rose-700">Total Penarikan Periode (-)</p>
+                    <p class="text-lg font-black text-rose-900 mt-0.5">${formatRp(totalTarik)}</p>
+                </div>
+                <div class="p-4 bg-slate-900 rounded-2xl border border-slate-800 text-white">
+                    <p class="text-xs font-bold text-slate-300">Saldo Akhir Tabungan</p>
+                    <p class="text-lg font-black text-emerald-400 mt-0.5">${formatRp(endingBalance)}</p>
+                    <p class="text-[10px] text-slate-400 font-medium mt-0.5">Saldo Awal: ${formatRp(openingBalance)}</p>
+                </div>
+            `;
+
+            document.getElementById('reportTableHeader').innerHTML = `
+                <tr>
+                    <th class="p-3 text-center border-b border-slate-300 w-12">No</th>
+                    <th class="p-3 border-b border-slate-300">Tanggal</th>
+                    <th class="p-3 border-b border-slate-300">Jenis</th>
+                    <th class="p-3 border-b border-slate-300 text-right">Setoran (+)</th>
+                    <th class="p-3 border-b border-slate-300 text-right">Penarikan (-)</th>
+                    <th class="p-3 border-b border-slate-300 text-right">Saldo Kumulatif</th>
+                    <th class="p-3 border-b border-slate-300">Keterangan</th>
+                </tr>
+            `;
+
+            const totalItems = rowsData.length;
+            const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
+
+            if (currentPageReport > totalPages) currentPageReport = totalPages;
+
+            const startIndex = (currentPageReport - 1) * ITEMS_PER_PAGE;
+            const pagedRows = isForPrint ? rowsData : rowsData.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+            const tbody = document.getElementById('reportTableBody');
+            if (totalItems === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-400">Belum ada catatan mutasi tabungan guru/karyawan ini</td></tr>`;
+                document.getElementById('reportTableFooter').innerHTML = '';
+                renderPaginationControls('reportPagination', 1, 0, 0, 'changeReportPage');
+                return;
+            }
+
+            let tableRowsHtml = '';
+            if (startIndex === 0 || isForPrint) {
+                tableRowsHtml += `
+                    <tr class="bg-slate-50 font-bold">
+                        <td class="p-2.5 border-b border-slate-200 text-center">-</td>
+                        <td class="p-2.5 border-b border-slate-200 text-slate-500 italic" colspan="4">SALDO AWAL PERIODE</td>
+                        <td class="p-2.5 border-b border-slate-200 text-right text-brand-700 font-extrabold">${formatRp(openingBalance)}</td>
+                        <td class="p-2.5 border-b border-slate-200 text-slate-400">-</td>
+                    </tr>
+                `;
+            }
+
+            pagedRows.forEach(item => {
+                const t = item.tx;
+                const amt = Number(t.amount || 0);
+
+                tableRowsHtml += `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-3 border-b border-slate-100 text-center font-mono font-bold">${item.index}</td>
+                        <td class="p-3 border-b border-slate-100 font-semibold text-slate-800">${t.date}</td>
+                        <td class="p-3 border-b border-slate-100">
+                            <span class="px-2 py-0.5 text-[10px] font-black rounded ${t.type === 'SETOR' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
+                                ${t.type === 'SETOR' ? '+ SETOR' : '- TARIK'}
+                            </span>
+                        </td>
+                        <td class="p-3 border-b border-slate-100 text-right font-bold text-emerald-600">${t.type === 'SETOR' ? formatRp(amt) : '-'}</td>
+                        <td class="p-3 border-b border-slate-100 text-right font-bold text-rose-600">${t.type === 'TARIK' ? formatRp(amt) : '-'}</td>
+                        <td class="p-3 border-b border-slate-100 text-right font-black text-slate-900">${formatRp(item.runBal)}</td>
+                        <td class="p-3 border-b border-slate-100 text-slate-500 text-xs">${t.note || '-'}</td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = tableRowsHtml;
+
+            document.getElementById('reportTableFooter').innerHTML = `
+                <tr>
+                    <td colspan="3" class="p-3 text-right font-extrabold text-slate-800">TOTAL PERIODE INI:</td>
+                    <td class="p-3 text-right font-black text-emerald-700">+${formatRp(totalSetor)}</td>
+                    <td class="p-3 text-right font-black text-rose-700">-${formatRp(totalTarik)}</td>
+                    <td class="p-3 text-right font-black text-brand-700">${formatRp(endingBalance)}</td>
+                    <td class="p-3"></td>
+                </tr>
+            `;
+
+            if (!isForPrint) {
+                renderPaginationControls('reportPagination', currentPageReport, totalPages, totalItems, 'changeReportPage');
+            }
+        }
+
         // Laporan Rekap Retribusi Parkir
         function renderParkingReport(startDate, endDate, isForPrint = false) {
             let filtered = [...parkingLogs];
@@ -5656,6 +7500,67 @@
 
                 const cleanName = student.name.replace(/[^a-zA-Z0-9]/g, '_');
                 fileName = `Buku_Tabungan_${student.nis}_${cleanName}.xlsx`;
+            } else if (type === 'TEACHER_SAVINGS') {
+                let filtered = [...teacherSavingsTransactions];
+                if (startDate) filtered = filtered.filter(t => t.date >= startDate);
+                if (endDate) filtered = filtered.filter(t => t.date <= endDate);
+
+                dataToExport = filtered.map(t => {
+                    const tch = teachers.find(s => s.nip === t.teacherNip);
+                    return {
+                        'Tanggal': t.date,
+                        'NIP/ID': t.teacherNip,
+                        'Nama Guru/Karyawan': t.teacherName,
+                        'Jabatan / Role': tch ? tch.role : 'Guru / Karyawan',
+                        'Jenis Mutasi': t.type,
+                        'Nominal (Rp)': Number(t.amount || 0),
+                        'Keterangan': t.note || ''
+                    };
+                });
+                fileName = `Laporan_Tabungan_Guru_Karyawan_${startDate || 'Awal'}_sd_${endDate || 'Akhir'}.xlsx`;
+            } else if (type === 'TEACHER') {
+                const nip = document.getElementById('repTeacherSelect')?.value;
+                const teacher = teachers.find(t => t.nip === nip);
+                if (!teacher) {
+                    showToast('Pilih guru / karyawan terlebih dahulu untuk diekspor!', 'error');
+                    return;
+                }
+
+                let allTeacherTxs = teacherSavingsTransactions.filter(t => t.teacherNip === teacher.nip)
+                    .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+                let openingBalance = 0;
+                if (startDate) {
+                    const priorTxs = allTeacherTxs.filter(t => t.date < startDate);
+                    openingBalance = priorTxs.reduce((acc, t) => acc + (t.type === 'SETOR' ? Number(t.amount || 0) : -Number(t.amount || 0)), 0);
+                }
+
+                let filtered = allTeacherTxs;
+                if (startDate) filtered = filtered.filter(t => t.date >= startDate);
+                if (endDate) filtered = filtered.filter(t => t.date <= endDate);
+
+                let runBal = openingBalance;
+                dataToExport = filtered.map((t, idx) => {
+                    const amt = Number(t.amount || 0);
+                    if (t.type === 'SETOR') runBal += amt;
+                    else runBal -= amt;
+
+                    return {
+                        'No': idx + 1,
+                        'Tanggal': t.date,
+                        'NIP/ID': teacher.nip,
+                        'Nama Guru/Karyawan': teacher.name,
+                        'Jabatan': teacher.role || 'Guru / Karyawan',
+                        'Jenis': t.type,
+                        'Setor (Rp)': t.type === 'SETOR' ? amt : 0,
+                        'Tarik (Rp)': t.type === 'TARIK' ? amt : 0,
+                        'Saldo Kumulatif (Rp)': runBal,
+                        'Keterangan': t.note || ''
+                    };
+                });
+
+                const cleanName = teacher.name.replace(/[^a-zA-Z0-9]/g, '_');
+                fileName = `Buku_Tabungan_${teacher.nip}_${cleanName}.xlsx`;
             } else {
                 let filtered = [...parkingLogs];
                 if (startDate) filtered = filtered.filter(p => p.date >= startDate);
@@ -6309,7 +8214,7 @@ window.EDUVAULT_DEFAULT_CONFIG = {
 
         function setupDateInputs() {
             const today = getTodayIsoDate();
-            ['txDate', 'prkDate'].forEach(id => {
+            ['txDate', 'txTeacherDate', 'prkDate'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el && !el.value) el.value = today;
             });
@@ -6328,13 +8233,15 @@ window.EDUVAULT_DEFAULT_CONFIG = {
         }
 
         function setupCurrencyInputs() {
-            ['txAmount', 'prkAmount', 'prkExpense'].forEach(id => {
+            ['txAmount', 'txTeacherAmount', 'tchInitialBalance', 'prkAmount', 'prkExpense'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) {
                     el.addEventListener('input', (e) => {
                         e.target.value = formatRupiahInput(e.target.value);
                         if (id === 'txAmount') {
                             validateSavingsAmount();
+                        } else if (id === 'txTeacherAmount') {
+                            validateTeacherSavingsAmount();
                         }
                     });
                 }
@@ -6511,21 +8418,51 @@ CREATE TABLE IF NOT EXISTS public.parking_logs (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
+-- 5. TABEL DATA GURU & KARYAWAN
+CREATE TABLE IF NOT EXISTS public.teachers (
+    id TEXT PRIMARY KEY DEFAULT ('tch_' || gen_random_uuid()::text),
+    nip TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    jk TEXT CHECK (jk IN ('L', 'P')) DEFAULT 'L',
+    role TEXT NOT NULL DEFAULT 'Guru',
+    phone TEXT DEFAULT '',
+    balance NUMERIC DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 6. TABEL TRANSAKSI TABUNGAN GURU & KARYAWAN
+CREATE TABLE IF NOT EXISTS public.teacher_savings_transactions (
+    id TEXT PRIMARY KEY DEFAULT ('tch_tx_' || gen_random_uuid()::text),
+    teacher_nip TEXT NOT NULL REFERENCES public.teachers(nip) ON UPDATE CASCADE ON DELETE CASCADE,
+    teacher_name TEXT NOT NULL,
+    type TEXT CHECK (type IN ('SETOR', 'TARIK')) NOT NULL,
+    amount NUMERIC NOT NULL CHECK (amount > 0),
+    date DATE NOT NULL DEFAULT CURRENT_DATE,
+    note TEXT DEFAULT '',
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
 -- PEMBERSIHAN DATA DUMMY (MENGHAPUS SEMUA DATA DUMMY SEBELUMNYA)
 TRUNCATE TABLE public.savings_transactions CASCADE;
+TRUNCATE TABLE public.teacher_savings_transactions CASCADE;
 TRUNCATE TABLE public.parking_logs CASCADE;
 TRUNCATE TABLE public.students CASCADE;
+TRUNCATE TABLE public.teachers CASCADE;
 DELETE FROM public.app_users WHERE username NOT IN ('admin');
 
 -- RLS POLICIES
 ALTER TABLE public.app_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.students ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.savings_transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.teacher_savings_transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.parking_logs ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Anon Full Access Users" ON public.app_users FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Anon Full Access Students" ON public.students FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Anon Full Access Teachers" ON public.teachers FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Anon Full Access Savings" ON public.savings_transactions FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Anon Full Access Teacher Savings" ON public.teacher_savings_transactions FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Anon Full Access Parking" ON public.parking_logs FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);`;
 
         function copySqlSchemaToClipboard() {
@@ -6603,6 +8540,8 @@ CREATE POLICY "Anon Full Access Parking" ON public.parking_logs FOR ALL TO anon,
             document.getElementById('userForm')?.addEventListener('submit', handleUserSubmit);
             document.getElementById('studentForm')?.addEventListener('submit', handleStudentSubmit);
             document.getElementById('savingsForm')?.addEventListener('submit', handleSavingsSubmit);
+            document.getElementById('teacherForm')?.addEventListener('submit', handleTeacherFormSubmit);
+            document.getElementById('teacherSavingsForm')?.addEventListener('submit', handleTeacherSavingsSubmit);
             document.getElementById('parkingForm')?.addEventListener('submit', handleParkingSubmit);
 
             // Mobile Sidebar Toggles
@@ -6626,12 +8565,14 @@ CREATE POLICY "Anon Full Access Parking" ON public.parking_logs FOR ALL TO anon,
                 if (e.key === 'Escape') {
                     closeConfirmModal();
                     closeStudentModal();
+                    closeTeacherModal();
                     closeUserModal();
                     closeExcelModal();
                     closeSupabaseModal();
                     closeSqlGuideModal();
                     closeLoginDatabaseModal();
                     closeSavingsExcelModal();
+                    closeTeacherSavingsExcelModal();
                     closeParkingExcelModal();
                     closePrintAllClassesModal();
                 }

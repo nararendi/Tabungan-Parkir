@@ -70,6 +70,30 @@ CREATE TABLE IF NOT EXISTS public.parking_logs (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
+-- 5. TABEL DATA GURU & KARYAWAN
+CREATE TABLE IF NOT EXISTS public.teachers (
+    id TEXT PRIMARY KEY DEFAULT ('tch_' || gen_random_uuid()::text),
+    nip TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    jk TEXT CHECK (jk IN ('L', 'P')) DEFAULT 'L',
+    role TEXT NOT NULL DEFAULT 'Guru',
+    phone TEXT DEFAULT '',
+    balance NUMERIC DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 6. TABEL TRANSAKSI TABUNGAN GURU & KARYAWAN
+CREATE TABLE IF NOT EXISTS public.teacher_savings_transactions (
+    id TEXT PRIMARY KEY DEFAULT ('tx_tch_' || gen_random_uuid()::text),
+    teacher_nip TEXT NOT NULL REFERENCES public.teachers(nip) ON UPDATE CASCADE ON DELETE CASCADE,
+    teacher_name TEXT NOT NULL,
+    type TEXT CHECK (type IN ('SETOR', 'TARIK')) NOT NULL,
+    amount NUMERIC NOT NULL CHECK (amount > 0),
+    date DATE NOT NULL DEFAULT CURRENT_DATE,
+    note TEXT DEFAULT '',
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
 -- ==============================================================================
 -- INDEXES UNTUK PERFORMA QUERY CEPAT
 -- ==============================================================================
@@ -91,6 +115,8 @@ ALTER TABLE public.app_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.students ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.savings_transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.parking_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.teacher_savings_transactions ENABLE ROW LEVEL SECURITY;
 
 -- Policy untuk app_users
 DROP POLICY IF EXISTS "Anon Full Access Users" ON public.app_users;
@@ -113,6 +139,18 @@ CREATE POLICY "Anon Full Access Savings" ON public.savings_transactions
 -- Policy untuk parking_logs
 DROP POLICY IF EXISTS "Anon Full Access Parking" ON public.parking_logs;
 CREATE POLICY "Anon Full Access Parking" ON public.parking_logs 
+    FOR ALL TO anon, authenticated 
+    USING (true) WITH CHECK (true);
+
+-- Policy untuk teachers
+DROP POLICY IF EXISTS "Anon Full Access Teachers" ON public.teachers;
+CREATE POLICY "Anon Full Access Teachers" ON public.teachers 
+    FOR ALL TO anon, authenticated 
+    USING (true) WITH CHECK (true);
+
+-- Policy untuk teacher_savings_transactions
+DROP POLICY IF EXISTS "Anon Full Access Teacher Savings" ON public.teacher_savings_transactions;
+CREATE POLICY "Anon Full Access Teacher Savings" ON public.teacher_savings_transactions 
     FOR ALL TO anon, authenticated 
     USING (true) WITH CHECK (true);
 
@@ -145,6 +183,18 @@ BEGIN
     ) THEN
         ALTER PUBLICATION supabase_realtime ADD TABLE public.app_users;
     END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables 
+        WHERE pubname = 'supabase_realtime' AND tablename = 'teachers'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.teachers;
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_publication_tables 
+        WHERE pubname = 'supabase_realtime' AND tablename = 'teacher_savings_transactions'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime ADD TABLE public.teacher_savings_transactions;
+    END IF;
 END $$;
 
 -- ==============================================================================
@@ -154,6 +204,8 @@ END $$;
 TRUNCATE TABLE public.savings_transactions CASCADE;
 TRUNCATE TABLE public.parking_logs CASCADE;
 TRUNCATE TABLE public.students CASCADE;
+TRUNCATE TABLE public.teacher_savings_transactions CASCADE;
+TRUNCATE TABLE public.teachers CASCADE;
 DELETE FROM public.app_users WHERE username NOT IN ('admin');
 
 -- ==============================================================================
