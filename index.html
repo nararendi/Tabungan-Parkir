@@ -2619,11 +2619,13 @@
 
         let currentSavingsTab = 'student'; // 'student' or 'teacher'
         let currentTeacherSavingsType = 'SETOR';
+        let currentActiveSection = 'dashboard';
 
         let currentUser = null;
         let pendingConfirmAction = null;
         let savingsChartInstance = null;
         let isSyncing = false;
+        let lastSyncTime = 0;
         let tempImportData = [];
         let tempSavingsImportData = [];
         let tempSavingsNewStudents = [];
@@ -2670,11 +2672,22 @@
         let parkingLogs = [];
         let users = [];
 
-        // Safe Lucide icon initializer
-        function safeLucide() {
-            if (typeof lucide !== 'undefined' && lucide.createIcons) {
-                lucide.createIcons();
+        // Optimized Lucide icon initializer (debounced so multiple renders don't freeze UI)
+        let lucideDebounceTimer = null;
+        function safeLucide(container = null) {
+            if (typeof lucide === 'undefined' || !lucide.createIcons) return;
+            if (container && container.nodeType) {
+                try {
+                    lucide.createIcons({ root: container });
+                    return;
+                } catch (e) {}
             }
+            if (lucideDebounceTimer) cancelAnimationFrame(lucideDebounceTimer);
+            lucideDebounceTimer = requestAnimationFrame(() => {
+                try {
+                    lucide.createIcons();
+                } catch (e) {}
+            });
         }
 
         // ==========================================
@@ -3095,10 +3108,8 @@
                     if (!silent) showToast('Data lokal berhasil disegarkan!', 'info');
                 }
 
-                recalculateStudentBalances();
-                recalculateTeacherBalances();
-                renderAllViews();
-                renderDashboardChart();
+                lastSyncTime = Date.now();
+                renderActiveView();
                 updateModalStatusCard();
             } catch (err) {
                 console.error('Sync Error:', err);
@@ -3276,20 +3287,23 @@
             const titleEl = document.getElementById('pageTitle');
             if (titleEl) titleEl.innerText = titleMap[sectionId] || 'Aplikasi Tabungan SMK Assalaam';
 
-            if (sectionId === 'savings') {
-                switchSavingsTab(currentSavingsTab || 'student');
-            }
+            currentActiveSection = sectionId;
 
-            if (sectionId === 'reports') {
+            if (sectionId === 'dashboard') {
+                renderDashboard();
+                renderDashboardChart();
+            } else if (sectionId === 'savings') {
+                switchSavingsTab(currentSavingsTab || 'student');
+            } else if (sectionId === 'parking') {
+                renderParking();
+            } else if (sectionId === 'students') {
+                renderStudents();
+            } else if (sectionId === 'reports') {
                 handleReportTypeChange();
                 applyReportFilter();
-            }
-
-            if (sectionId === 'class-recap') {
+            } else if (sectionId === 'class-recap') {
                 renderClassPickerGrid();
-            }
-
-            if (sectionId === 'settings') {
+            } else if (sectionId === 'settings') {
                 renderUsers();
                 populateSettingsDatabaseForm();
                 populateSettingsSpreadsheetForm();
@@ -3518,19 +3532,31 @@
             const studentsInClass = (students || []).filter(s =>
                 (s.class || 'Tanpa Kelas').trim() === className
             );
+
+            // Pre-index transaksi per NIS agar lookup O(1) cepat
+            const txMap = new Map();
+            for (let i = 0; i < (savingsTransactions || []).length; i++) {
+                const t = savingsTransactions[i];
+                const nis = t.studentNis || t.student_nis;
+                if (!nis) continue;
+                let arr = txMap.get(nis);
+                if (!arr) {
+                    arr = [];
+                    txMap.set(nis, arr);
+                }
+                arr.push(t);
+            }
+
             const list = studentsInClass.map(s => {
-                // Match transaksi by studentNis (local) atau student_nis (Supabase)
-                const txs = (savingsTransactions || []).filter(t =>
-                    (t.studentNis && t.studentNis === s.nis) ||
-                    (t.student_nis && t.student_nis === s.nis)
-                );
+                const txs = txMap.get(s.nis) || [];
                 let totalDeposit = 0, totalWithdraw = 0, depositCount = 0, withdrawCount = 0;
-                txs.forEach(t => {
+                for (let j = 0; j < txs.length; j++) {
+                    const t = txs[j];
                     const amt = Number(t.amount || 0);
                     const ttype = (t.type || '').toUpperCase();
                     if (ttype === 'SETOR' || ttype === 'DEPOSIT') { totalDeposit += amt; depositCount++; }
                     else { totalWithdraw += amt; withdrawCount++; }
-                });
+                }
                 const computedBalance = totalDeposit - totalWithdraw;
                 const balance = txs.length > 0 ? computedBalance : Number(s.balance || 0);
                 return {
@@ -4176,29 +4202,66 @@
         }
 
         function recalculateStudentBalances() {
-            students.forEach(s => {
-                const txs = savingsTransactions.filter(t => t.studentNis === s.nis);
-                s.balance = txs.reduce((acc, t) => acc + (t.type === 'SETOR' ? Number(t.amount || 0) : -Number(t.amount || 0)), 0);
-            });
+            const balanceMap = new Map();
+            for (let i = 0; i < (savingsTransactions || []).length; i++) {
+                const t = savingsTransactions[i];
+                const nis = t.studentNis || t.student_nis;
+                if (!nis) continue;
+                const amt = Number(t.amount || 0);
+                const isDeposit = (t.type || '').toUpperCase() === 'SETOR' || (t.type || '').toUpperCase() === 'DEPOSIT';
+                balanceMap.set(nis, (balanceMap.get(nis) || 0) + (isDeposit ? amt : -amt));
+            }
+            for (let i = 0; i < (students || []).length; i++) {
+                students[i].balance = balanceMap.get(students[i].nis) || 0;
+            }
         }
 
         function recalculateTeacherBalances() {
-            teachers.forEach(tch => {
-                const txs = teacherSavingsTransactions.filter(t => t.teacherNip === tch.nip);
-                tch.balance = txs.reduce((acc, t) => acc + (t.type === 'SETOR' ? Number(t.amount || 0) : -Number(t.amount || 0)), 0);
-            });
+            const balanceMap = new Map();
+            for (let i = 0; i < (teacherSavingsTransactions || []).length; i++) {
+                const t = teacherSavingsTransactions[i];
+                const nip = t.teacherNip || t.teacher_nip;
+                if (!nip) continue;
+                const amt = Number(t.amount || 0);
+                const isDeposit = (t.type || '').toUpperCase() === 'SETOR' || (t.type || '').toUpperCase() === 'DEPOSIT';
+                balanceMap.set(nip, (balanceMap.get(nip) || 0) + (isDeposit ? amt : -amt));
+            }
+            for (let i = 0; i < (teachers || []).length; i++) {
+                teachers[i].balance = balanceMap.get(teachers[i].nip) || 0;
+            }
+        }
+
+        // Render hanya section yang sedang aktif dilihat pengguna (hemat CPU & DOM)
+        function renderActiveView() {
+            recalculateStudentBalances();
+            recalculateTeacherBalances();
+
+            if (currentActiveSection === 'dashboard') {
+                renderDashboard();
+                renderDashboardChart();
+            } else if (currentActiveSection === 'savings') {
+                if (currentSavingsTab === 'teacher') {
+                    renderTeacherSavings();
+                    populateTeacherDropdowns();
+                } else {
+                    renderSavings();
+                    populateStudentDropdowns();
+                }
+            } else if (currentActiveSection === 'parking') {
+                renderParking();
+            } else if (currentActiveSection === 'students') {
+                renderStudents();
+            } else if (currentActiveSection === 'reports') {
+                applyReportFilter();
+            } else if (currentActiveSection === 'class-recap') {
+                renderClassPickerGrid();
+            } else if (currentActiveSection === 'settings') {
+                renderUsers();
+            }
         }
 
         function renderAllViews() {
-            renderDashboard();
-            renderDashboardChart();
-            renderSavings();
-            renderTeacherSavings();
-            renderStudents();
-            renderParking();
-            renderUsers();
-            populateStudentDropdowns();
-            populateTeacherDropdowns();
+            renderActiveView();
         }
 
         // ==========================================
@@ -4427,8 +4490,12 @@
                 withdrawals.push(dayTarik);
             });
 
-            if (savingsChartInstance) {
-                savingsChartInstance.destroy();
+            if (savingsChartInstance && savingsChartInstance.ctx) {
+                savingsChartInstance.data.labels = labels;
+                savingsChartInstance.data.datasets[0].data = deposits;
+                savingsChartInstance.data.datasets[1].data = withdrawals;
+                savingsChartInstance.update('none');
+                return;
             }
 
             if (typeof Chart !== 'undefined') {
@@ -9536,15 +9603,15 @@ CREATE POLICY "Anon Full Access Parking" ON public.parking_logs FOR ALL TO anon,
                 }
             });
 
-            // Auto-refresh when tab/window becomes active
+            // Auto-refresh saat tab/jendela aktif (dibatasi maksimal 1x per 30 detik agar tidak freeze saat pindah window)
             window.addEventListener('focus', () => {
+                const now = Date.now();
+                if (now - lastSyncTime < 30000) return;
                 if (supabaseClient && currentUser) {
                     syncData(true);
                 } else {
                     loadDataFromLocal();
-                    recalculateStudentBalances();
-                    recalculateTeacherBalances();
-                    renderAllViews();
+                    renderActiveView();
                 }
             });
 
@@ -9552,18 +9619,19 @@ CREATE POLICY "Anon Full Access Parking" ON public.parking_logs FOR ALL TO anon,
             window.addEventListener('storage', (e) => {
                 if (e.key && e.key.startsWith('eduvault_')) {
                     loadDataFromLocal();
-                    recalculateStudentBalances();
-                    recalculateTeacherBalances();
-                    renderAllViews();
+                    renderActiveView();
                 }
             });
 
-            // Periodic live heartbeat sync (setiap 10 detik jika Supabase terhubung)
+            // Periodic live heartbeat sync (setiap 60 detik sebagai cadangan fallback, Supabase Realtime sudah aktif)
             setInterval(() => {
                 if (supabaseClient && currentUser && !isSyncing) {
-                    syncData(true);
+                    const now = Date.now();
+                    if (now - lastSyncTime >= 60000) {
+                        syncData(true);
+                    }
                 }
-            }, 10000);
+            }, 60000);
 
             // Initial Sync
             syncData(true);
