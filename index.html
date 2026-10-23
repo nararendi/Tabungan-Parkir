@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplikasi Tabungan SMK Assalaam</title>
+    <title>Aplikasi Tabungan Gukar & Siswa</title>
 
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -534,13 +534,13 @@
     <aside id="sidebar" class="w-full md:w-64 bg-slate-900 text-slate-300 flex flex-col flex-shrink-0 transition-all duration-300 z-30 fixed md:relative inset-y-0 -translate-x-full md:translate-x-0 no-print border-r border-slate-800">
         <!-- Logo & Header -->
         <div class="p-5 border-b border-slate-800/80 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white font-black text-xl shadow-md shadow-brand-600/25">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white font-black text-xl shadow-md shadow-brand-600/25 flex-shrink-0">
                     <i data-lucide="wallet" class="w-5 h-5"></i>
                 </div>
-                <div>
-                    <h1 class="font-extrabold text-white text-base tracking-tight leading-none">SMK Assalaam</h1>
-                    <p class="text-xs text-slate-400 mt-1 font-medium" id="sideRoleText">Aplikasi Tabungan</p>
+                <div class="min-w-0">
+                    <h1 class="font-extrabold text-white text-xs sm:text-sm tracking-tight leading-snug">Aplikasi Tabungan Gukar &amp; Siswa</h1>
+                    <p class="text-[11px] text-slate-400 mt-0.5 font-medium truncate" id="sideRoleText">SMK Assalaam</p>
                 </div>
             </div>
             <button id="toggleSidebarBtn" class="md:hidden text-slate-400 hover:text-white p-1 rounded-lg">
@@ -648,7 +648,7 @@
                 <!-- Welcome Banner (Compact) -->
                 <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-brand-900 p-4 sm:p-5 text-white shadow-md">
                     <div class="relative z-10 space-y-1">
-                        <h2 class="text-base sm:text-lg font-extrabold tracking-tight">Selamat Datang di Aplikasi Tabungan SMK Assalaam</h2>
+                        <h2 class="text-base sm:text-lg font-extrabold tracking-tight">Selamat Datang di Aplikasi Tabungan Gukar &amp; Siswa</h2>
                         <p class="text-xs text-slate-300">Pencatatan kas tabungan siswa terpercaya, tabungan guru &amp; karyawan, serta rekapitulasi harian retribusi parkir.</p>
                     </div>
                 </div>
@@ -2038,7 +2038,7 @@
                 <ol class="list-decimal list-inside space-y-0.5 text-indigo-800">
                     <li>Buka dashboard Supabase -> Klik project Anda -> Pilih menu <strong>SQL Editor</strong>.</li>
                     <li>Klik <strong>New Query</strong>, tempel (Paste) kode di atas, lalu klik <strong>RUN</strong>.</li>
-                    <li>Selesai! Tabel siap dihubungkan langsung dari Aplikasi Tabungan SMK Assalaam.</li>
+                    <li>Selesai! Tabel siap dihubungkan langsung dari Aplikasi Tabungan Gukar &amp; Siswa.</li>
                 </ol>
             </div>
         </div>
@@ -3286,7 +3286,7 @@
                 settings: 'Pengaturan Sistem & Database'
             };
             const titleEl = document.getElementById('pageTitle');
-            if (titleEl) titleEl.innerText = titleMap[sectionId] || 'Aplikasi Tabungan SMK Assalaam';
+            if (titleEl) titleEl.innerText = titleMap[sectionId] || 'Aplikasi Tabungan Gukar & Siswa';
 
             currentActiveSection = sectionId;
 
@@ -8165,7 +8165,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>${subTitle} - Aplikasi Tabungan SMK Assalaam</title>
+<title>${subTitle} - Aplikasi Tabungan Gukar & Siswa</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Arial', sans-serif; font-size: 9pt; color: #0f172a; background: #fff; padding: 15px 20px; }
@@ -8470,7 +8470,7 @@ window.EDUVAULT_DEFAULT_CONFIG = {
                     body: JSON.stringify({
                         action: 'ping',
                         timestamp: new Date().toISOString(),
-                        appName: 'Aplikasi Tabungan SMK Assalaam'
+                        appName: 'Aplikasi Tabungan Gukar & Siswa'
                     })
                 });
 
@@ -8511,7 +8511,7 @@ window.EDUVAULT_DEFAULT_CONFIG = {
                 const payload = {
                     action: 'full_backup',
                     timestamp: new Date().toISOString(),
-                    appName: 'Aplikasi Tabungan SMK Assalaam',
+                    appName: 'Aplikasi Tabungan Gukar & Siswa',
                     summary: {
                         totalStudents: students.length,
                         totalSavingsTransactions: savingsTransactions.length,
@@ -8598,7 +8598,7 @@ window.EDUVAULT_DEFAULT_CONFIG = {
                 action: action,
                 data: data,
                 timestamp: new Date().toISOString(),
-                appName: 'Aplikasi Tabungan SMK Assalaam'
+                appName: 'Aplikasi Tabungan Gukar & Siswa'
             }).then(success => {
                 if (success) {
                     console.log(`[Spreadsheet Backup] Sukses mengirim ${action}`);
@@ -8608,7 +8608,7 @@ window.EDUVAULT_DEFAULT_CONFIG = {
 
         function copyAppsScriptCode() {
             const code = `// ==============================================================
-// GOOGLE APPS SCRIPT: PENERIMA BACKUP TABUNGAN SMK ASSALAAM
+// GOOGLE APPS SCRIPT: PENERIMA BACKUP APLIKASI TABUNGAN GUKAR & SISWA
 // ==============================================================
 // Petunjuk:
 // 1. Tempelkan kode ini di Extensions > Apps Script pada Google Sheet Anda
@@ -9134,7 +9134,7 @@ function doPost(e) {
         }
 
         function handleLogout() {
-            openConfirmModal('Keluar Sistem', 'Apakah Anda yakin ingin keluar dari sistem Aplikasi Tabungan SMK Assalaam?', () => {
+            openConfirmModal('Keluar Sistem', 'Apakah Anda yakin ingin keluar dari sistem Aplikasi Tabungan Gukar & Siswa?', () => {
                 sessionStorage.removeItem(STORAGE_KEY_SESSION);
                 currentUser = null;
                 document.getElementById('loginOverlay').classList.remove('hidden');

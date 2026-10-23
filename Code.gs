@@ -1,5 +1,5 @@
 // ==============================================================
-// GOOGLE APPS SCRIPT: PENERIMA BACKUP TABUNGAN SMK ASSALAAM
+// GOOGLE APPS SCRIPT: PENERIMA BACKUP APLIKASI TABUNGAN GUKAR & SISWA
 // File: Code.gs
 // ==============================================================
 // Petunjuk Penggunaan:
